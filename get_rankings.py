@@ -15,32 +15,35 @@ def get_html_content(html_text, html_tag):
 
     open_regex = re.compile(r'<' + html_tag + r'.*?>', flags=re.DOTALL)
     close_regex = re.compile(r'</' + html_tag + r'>')
-    debug_open_regex = re.compile(r'<' + html_tag)
-
-    all_matches =[]
-    for match in  debug_open_regex.finditer(html_text):
-        all_matches.append(match)
-        tag_start = match.start()
-        print(f'Debug match at {tag_start}: {html_text[tag_start:tag_start + 30]}')
 
     contents = []
     offset = 0
+    nesting_depth = 0
+    inside_tag_block = False
+    block_content_start_idx = -1
 
     while True:
         open_match = open_regex.search(html_text, pos=offset)
-        if open_match is None:
-            break
-        idx_char_after_opening_tag = open_match.end()
-        debug_idx_char_start_tag = open_match.start()
-        close_match = close_regex.search(html_text, pos=idx_char_after_opening_tag)
+        close_match = close_regex.search(html_text, pos=offset)
         if close_match is None:
-            print(f'Warning: unmatched opening tag {html_tag} found and ignored')
+            print('Warning: no match for closing tag "f{html_tag}"')
             break
-        idx_first_char_closing_tag = close_match.start()
-        content_substr = html_text[idx_char_after_opening_tag : idx_first_char_closing_tag]
-        contents.append(content_substr)
-        idx_char_after_closing_tag = close_match.end()
-        offset = idx_char_after_closing_tag
+        if open_match is not None and (open_match.start() < close_match.start()):
+            if inside_tag_block:
+                nesting_depth += 1
+            else:
+                block_content_start_idx = open_match.end()
+                inside_tag_block = True
+            offset = open_match.end()
+        else:
+            if nesting_depth > 0:
+                # keep searching for tag that closes original opening tag
+                nesting_depth -= 1
+            else:
+                content_substr = html_text[block_content_start_idx : close_match.start()]
+                contents.append(content_substr)
+                inside_tag_block = False
+            offset = close_match.end()
 
     return contents
 
@@ -61,11 +64,16 @@ def process_one_year_gender(club_id, year, gender):
         raise Exception(f'HTTP error code fetching page: {page_response.status_code}')
 
     tables = get_html_content(page_response.text, 'table')
+    second_level_tables = []
+    for table in tables:
+        nested_tables = get_html_content(table, 'table')
+        second_level_tables.extend(nested_tables)
+
     pass
 
 def main(club_id=238):
     for year in range(2005,2006):
-        for gender in ['F', 'M']:
+        for gender in ['W', 'M']:
             process_one_year_gender(club_id, year, gender)
 
 if __name__ == '__main__':
