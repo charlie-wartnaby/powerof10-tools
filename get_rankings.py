@@ -3,17 +3,23 @@ import requests
 
 class Performance():
     def __init__(self):
-        event_name = ''
-        time_sec = 0.0
-        runner_name = ''
-        runner_url = ''
-        fixture_name = ''
-        fixture_url = ''
+        self.event_name = ''
+        self.time_sec = 0.0
+        self.runner_name = ''
+        self.runner_url = ''
+        self.fixture_name = ''
+        self.fixture_url = ''
+
+class HtmlBlock():
+    def __init__(self, _tag=''):
+        self.tag = _tag
+        self.inner_text = ''
+        self.attribs = {}
 
 def get_html_content(html_text, html_tag):
     """Extracts instances of text data enclosed by required tag"""
 
-    open_regex = re.compile(r'<' + html_tag + r'.*?>', flags=re.DOTALL)
+    open_regex = re.compile(r'<' + html_tag + r'(.*?)>', flags=re.DOTALL)
     close_regex = re.compile(r'</' + html_tag + r'>')
 
     contents = []
@@ -34,14 +40,23 @@ def get_html_content(html_text, html_tag):
             else:
                 block_content_start_idx = open_match.end()
                 inside_tag_block = True
+                attribs_unparsed = open_match.group(1)
+                attrib_pairs = attribs_unparsed.split(' ')
+                content = HtmlBlock(html_tag)
+                for attrib_pair in attrib_pairs:
+                    key, _, quoted_value = attrib_pair.partition('=')
+                    if not (key or quoted_value):
+                        continue
+                    unquoted_value = quoted_value.replace('"', '')
+                    content.attribs[key] = unquoted_value
             offset = open_match.end()
         else:
             if nesting_depth > 0:
                 # keep searching for tag that closes original opening tag
                 nesting_depth -= 1
             else:
-                content_substr = html_text[block_content_start_idx : close_match.start()]
-                contents.append(content_substr)
+                content.inner_text = html_text[block_content_start_idx : close_match.start()]
+                contents.append(content)
                 inside_tag_block = False
             offset = close_match.end()
 
@@ -66,7 +81,7 @@ def process_one_year_gender(club_id, year, gender):
     tables = get_html_content(page_response.text, 'table')
     second_level_tables = []
     for table in tables:
-        nested_tables = get_html_content(table, 'table')
+        nested_tables = get_html_content(table.inner_text, 'table')
         second_level_tables.extend(nested_tables)
 
     pass
