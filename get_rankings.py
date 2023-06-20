@@ -18,6 +18,9 @@ class HtmlBlock():
         self.inner_text = ''
         self.attribs = {}
 
+performance = []
+
+
 def get_html_content(html_text, html_tag):
     """Extracts instances of text data enclosed by required tag"""
 
@@ -96,10 +99,13 @@ def process_one_rankings_table(rows):
             if 'class' not in rows[row_idx].attribs or not rows[row_idx].attribs['class'].startswith('rlr'):
                 state = "seeking_title"
             else:
-                name = cells[heading_idx['Name']].inner_text
-                perf = cells[heading_idx['Perf']].inner_text
-                print(name, perf)
-                pass
+                name_link = cells[heading_idx['Name']]
+                if name_link.inner_text: # Can get empty name if 2nd or more performances by same athlete
+                    anchor = get_html_content(name_link.inner_text, 'a')
+                    name = anchor[0].inner_text
+                    url = anchor[0].attribs["href"]
+                    perf = cells[heading_idx['Perf']].inner_text
+                    print(name, url, perf)
         else:
             # unknown state
             state = "seeking_title"
@@ -121,7 +127,7 @@ def process_one_year_gender(club_id, year, gender):
     if page_response.status_code != 200:
         raise Exception(f'HTTP error code fetching page: {page_response.status_code}')
 
-    debug = True
+    debug = False
     if debug:
         with open('shortened_example.htm') as fd:
             input_text = fd.read()
@@ -150,7 +156,7 @@ def process_one_year_gender(club_id, year, gender):
 
 def main(club_id=238):
 
-    for year in range(2005,2006):
+    for year in range(2005,2024):
         for gender in ['W', 'M']:
             process_one_year_gender(club_id, year, gender)
 
