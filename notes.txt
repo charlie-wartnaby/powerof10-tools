@@ -5,7 +5,7 @@ https://thepowerof10.info/rankings/rankinglists.aspx?clubid=238&agegroups=U20&se
 https://thepowerof10.info/rankings/rankinglists.aspx?
 clubid=238          -- C&C=238
 &agegroups=U20      -- ALL/U20/U17/U15/U13. ALL seems to contain all junior results OK
-&sex=M              -- M/F
+&sex=M              -- M/W
 &year=2023          -- 2005-2023
 &firstclaimonly=y   -- y or n
 &limits=n           -- with 'y', only shows faster performances?

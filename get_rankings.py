@@ -1,5 +1,7 @@
 import re
 import requests
+import sys
+
 
 class Performance():
     def __init__(self):
@@ -118,7 +120,14 @@ def process_one_year_gender(club_id, year, gender):
     if page_response.status_code != 200:
         raise Exception(f'HTTP error code fetching page: {page_response.status_code}')
 
-    tables = get_html_content(page_response.text, 'table')
+    debug = True
+    if debug:
+        with open('shortened_example.htm') as fd:
+            input_text = fd.read()
+    else:
+        input_text = page_response.text
+        
+    tables = get_html_content(input_text, 'table')
     second_level_tables = []
     for table in tables:
         nested_tables = get_html_content(table.inner_text, 'table')
@@ -135,8 +144,11 @@ def process_one_year_gender(club_id, year, gender):
         # Looks like we've found the table of results
         process_one_rankings_table(rows)
 
+    if debug:
+        sys.exit(0)
 
 def main(club_id=238):
+
     for year in range(2005,2006):
         for gender in ['W', 'M']:
             process_one_year_gender(club_id, year, gender)
