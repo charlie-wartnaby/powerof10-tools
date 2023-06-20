@@ -20,6 +20,40 @@ class HtmlBlock():
 
 performance = []
 
+# Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents:
+known_events_smaller_better = {'60'      : True,
+                               '100'     : True,
+                               '200'     : True,
+                               '400'     : True,
+                               '800'     : True,
+                               '1500'    : True,
+                               '3000'    : True,
+                               '5000'    : True,
+                               '10000'   : True,
+                               '3000SC'  : True,
+                               '3000SCW' : True,
+                               '100HW'   : True,
+                               '110H'    : True,
+                               '400H'    : True,
+                               '400HW'   : True,
+                               'HJ'      : False,
+                               'PV'      : False,
+                               'LJ'      : False,
+                               'TJ'      : False,
+                               'SP4K'    : False,
+                               'SP7.26K' : False,
+                               'DT1K'    : False,
+                               'DT2K'    : False,
+                               'HT4K'    : False,
+                               'HT7.26K' : False,
+                               'JT600'   : False,
+                               'JT800'   : False,
+                               'HepW'    : False,
+                               'Dec'     : False,
+                               '10K'     : True,
+                               'HM'      : True,
+                               'Mar'     : True}
+
 
 def get_html_content(html_text, html_tag):
     """Extracts instances of text data enclosed by required tag"""
