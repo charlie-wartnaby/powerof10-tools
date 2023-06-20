@@ -34,7 +34,8 @@ def get_html_content(html_text, html_tag):
         open_match = open_regex.search(html_text, pos=offset)
         close_match = close_regex.search(html_text, pos=offset)
         if close_match is None:
-            print(f'Warning: no match for closing tag "{html_tag}"')
+            if ((open_match is not None) and (nesting_depth == 0)) or (nesting_depth > 0):
+                print(f'Warning: no match for closing tag "{html_tag}"')
             break
         if open_match is not None and (open_match.start() < close_match.start()):
             if inside_tag_block:
