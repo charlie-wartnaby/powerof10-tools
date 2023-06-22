@@ -4,21 +4,23 @@ import sys
 
 
 class Performance():
-    def __init__(self):
-        self.event_name = ''
-        self.time_sec = 0.0
-        self.runner_name = ''
-        self.runner_url = ''
+    def __init__(self, event, score, athlete_name, athlete_url='', fixture_name='', fixture_url=''):
+        self.event = ''
+        self.score = 0.0 # could be time in sec, distance in m or multievent points
+        self.athlete_name = ''
+        self.athlete_url = ''
         self.fixture_name = ''
         self.fixture_url = ''
 
 class HtmlBlock():
-    def __init__(self, _tag=''):
-        self.tag = _tag
+    def __init__(self, tag=''):
+        self.tag = tag
         self.inner_text = ''
         self.attribs = {}
 
-performance = []
+record = {} # dict of events, each dict of genders, then ordered list of performances
+max_records_all = 10 # max number of records for each event/gender, including all age groups
+max_regords_age_group = 3 # Similarly per age group
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents:
 known_events_smaller_better = {'60'      : True,
@@ -52,7 +54,7 @@ known_events_smaller_better = {'60'      : True,
                                'Dec'     : False,
                                '10K'     : True,
                                'HM'      : True,
-                               'Mar'     : True}
+                               'Mar'     : True  }
 
 
 def get_html_content(html_text, html_tag):
@@ -105,7 +107,41 @@ def get_html_content(html_text, html_tag):
 def debold(bold_tagged_string):
     return bold_tagged_string.replace('<b>', '').replace('</b>', '')
 
-def process_one_rankings_table(rows):
+def process_performance(event, gender, score, name, url):
+    if event not in record:
+        # First occurrence of this event so start new
+        record[event] = {}
+    if gender not in record[event]:
+        # First performance by this gender in this event so start new list
+        record[event][gender] = []
+
+    if event not in known_events_smaller_better:
+        print(f'Warning: unknown event {event}, ignoring')
+        return
+    smaller_score_better = known_events_smaller_better[event]
+
+    record_list = record[event][gender]
+    add_record = False
+    if len(record_list) < max_records_all:
+        # We don't have enough records for this event yet so add
+        add_record = True
+    else:
+        prev_worst_score = record_list[-1].score
+        # For a tie, not adding new record as the earlier one should
+        # take precedence, but TODO not considering fixture date yet,
+        # only depending on processing rankings in year order
+        if smaller_score_better:
+            if score < prev_worst_score: add_record = True
+        else:
+            if score > prev_worst_score: add_record = True
+
+    if add_record:
+        perf = Performance(event, score, name, url)
+        record_list.append(perf)
+        record_list.sort(key=lambda x: x.score, reverse=smaller_score_better)
+        record_list = record_list[:max_records_all]
+
+def process_one_rankings_table(rows, gender):
     state = "seeking_title"
     row_idx = 0
     while True:
@@ -118,7 +154,7 @@ def process_one_rankings_table(rows):
                 pass
             else:
                 event_title = debold(cells[0].inner_text).strip()
-                print(event_title)
+                event = event_title.split(' ', 1)[0]
                 state = "seeking_headings"
         elif state == "seeking_headings":
             if 'class' not in rows[row_idx].attribs or rows[row_idx].attribs['class'] != 'rankinglistheadings':
@@ -139,7 +175,7 @@ def process_one_rankings_table(rows):
                     name = anchor[0].inner_text
                     url = anchor[0].attribs["href"]
                     perf = cells[heading_idx['Perf']].inner_text
-                    print(name, url, perf)
+                    process_performance(event, gender, perf, name, url)
         else:
             # unknown state
             state = "seeking_title"
@@ -183,16 +219,33 @@ def process_one_year_gender(club_id, year, gender):
         if 'class' not in rows[1].attribs or rows[1].attribs['class'] != 'rankinglistheadings':
             continue
         # Looks like we've found the table of results
-        process_one_rankings_table(rows)
+        process_one_rankings_table(rows, gender)
 
     if debug:
         sys.exit(0)
 
-def main(club_id=238):
+def output_records():
+    # As debug just do a few events
 
-    for year in range(2005,2024):
+    for event in ['Mar', 'LJ', 'HepW', 'Dec']:
+        if event not in record: continue
+        for gender in ['W', 'M']:
+            record_list = record[event].get(gender)
+            if not record_list: continue
+            print(f'Records for f{event} f{gender}')
+            for idx, perf in enumerate(record_list):
+                print(f'{idx+1} f{perf.score} f{perf.athlete_name}')
+            print()
+
+
+def main(club_id=238):
+    first_year = 2005
+    last_year = 2023
+    for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
             process_one_year_gender(club_id, year, gender)
+
+    output_records()
 
 if __name__ == '__main__':
     main()
