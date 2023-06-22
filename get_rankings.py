@@ -154,7 +154,7 @@ def process_performance(event, gender, perf, name, url):
         perf = Performance(event, score, name, url)
         record_list.append(perf)
         record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
-        record_list = record_list[:max_records_all]
+        del record_list[max_records_all :]
 
 def process_one_rankings_table(rows, gender):
     state = "seeking_title"
@@ -203,7 +203,7 @@ def process_one_year_gender(club_id, year, gender):
                       'sex' : gender,
                       'year' : str(year),
                       'firstclaimonly' : 'y',
-                      'limits' : 'n'} # get a lot of results with no limits in recent years but don't want to miss rarely performed events
+                      'limits' : 'y'} # y faster for debug but don't want to miss rarely performed events so 'n' for completeness
 
     page_response = requests.get('https://thepowerof10.info/rankings/rankinglists.aspx', request_params)
 
