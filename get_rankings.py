@@ -1,3 +1,4 @@
+import math
 import re
 import requests
 import sys
@@ -22,39 +23,44 @@ record = {} # dict of events, each dict of genders, then ordered list of perform
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_regords_age_group = 3 # Similarly per age group
 
-# Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents:
-known_events_smaller_better = {'60'      : True,
-                               '100'     : True,
-                               '200'     : True,
-                               '400'     : True,
-                               '800'     : True,
-                               '1500'    : True,
-                               '3000'    : True,
-                               '5000'    : True,
-                               '10000'   : True,
-                               '3000SC'  : True,
-                               '3000SCW' : True,
-                               '100HW'   : True,
-                               '110H'    : True,
-                               '400H'    : True,
-                               '400HW'   : True,
-                               'HJ'      : False,
-                               'PV'      : False,
-                               'LJ'      : False,
-                               'TJ'      : False,
-                               'SP4K'    : False,
-                               'SP7.26K' : False,
-                               'DT1K'    : False,
-                               'DT2K'    : False,
-                               'HT4K'    : False,
-                               'HT7.26K' : False,
-                               'JT600'   : False,
-                               'JT800'   : False,
-                               'HepW'    : False,
-                               'Dec'     : False,
-                               '10K'     : True,
-                               'HM'      : True,
-                               'Mar'     : True  }
+# Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
+# some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
+known_events = [('60' , True, 1),
+                               ('100', True, 1),
+                               ('200', True, 1),
+                               ('400', True, 1),
+                               ('800', True, 2),
+                               ('1500', True, 2),
+                               ('3000', True, 2),
+                               ('5000', True, 2),
+                               ('10000', True, 2),
+                               ('3000SC', True, 2),
+                               ('3000SCW', True, 2),
+                               ('100HW', True, 1),
+                               ('110H', True, 1),
+                               ('400H', True, 1),
+                               ('400HW', True, 1),
+                               ('HJ', False, 1),
+                               ('PV', False, 1),
+                               ('LJ', False, 1),
+                               ('TJ', False, 1),
+                               ('SP4K', False, 1),
+                               ('SP7.26K', False, 1),
+                               ('DT1K', False, 1),
+                               ('DT2K', False, 1),
+                               ('HT4K', False, 1),
+                               ('HT7.26K', False, 1),
+                               ('JT600', False, 1),
+                               ('JT800', False, 1),
+                               ('HepW', False, 1),
+                               ('Dec', False, 1),
+                               ('10K', True, 2),
+                               ('HM', True, 2),
+                               ('Mar', True, 3)  ]
+
+known_events_lookup = {}
+for (event, smaller_better, numbers) in known_events:
+    known_events_lookup[event] = (smaller_better, numbers)
 
 
 def get_html_content(html_text, html_tag):
@@ -128,10 +134,10 @@ def process_performance(event, gender, perf, name, url):
         # First performance by this gender in this event so start new list
         record[event][gender] = []
 
-    if event not in known_events_smaller_better:
+    if event not in known_events_lookup:
         print(f'Warning: unknown event {event}, ignoring')
         return
-    smaller_score_better = known_events_smaller_better[event]
+    smaller_score_better = known_events_lookup[event][0]
 
     score = make_numeric_score_from_performance_string(perf)
 
@@ -250,17 +256,40 @@ def process_one_year_gender(club_id, year, gender):
     if debug:
         sys.exit(0)
 
+def format_sexagesimal(value, num_numbers):
+    """Format as HH:MM:SS (3 numbers), SS.sss (1 number) etc"""
+    output = ''
+    divisor = 60 ** (num_numbers - 1)
+    for i in range(num_numbers - 1):
+        quotient = int(value / divisor)
+        if i == 0:
+            output += '%d:' % quotient
+        else:
+            output += "%.2d:" % quotient # leading zero if needed after first number
+        value -= (quotient * divisor)
+        divisor /= 60
+    if (num_numbers == 1):
+        output += "%.2f" % value
+    elif (num_numbers == 2):
+        output += "%04.1f" % value # leading zero if needed after first number
+    else:
+        output += "%02d" % int(value) # for marathon h:m:s don't want fractions of a sec
+
+    return output
+
+
 def output_records():
     # As debug just do a few events
 
-    for event in ['Mar', 'LJ', 'HepW', 'Dec']:
+    for event in ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
         if event not in record: continue
         for gender in ['W', 'M']:
             record_list = record[event].get(gender)
             if not record_list: continue
             print(f'Records for {event} {gender}')
             for idx, perf in enumerate(record_list):
-                print(f'{idx+1} {perf.score} {perf.athlete_name}')
+                score_str = format_sexagesimal(perf.score, known_events_lookup[event][1])
+                print(f'{idx+1} {score_str} {perf.athlete_name}')
             print()
 
 
