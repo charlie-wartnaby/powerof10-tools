@@ -154,6 +154,17 @@ def process_performance(event, gender, perf, name, url):
         perf = Performance(event, score, name, url)
         record_list.append(perf)
         record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
+        athlete_names = {}
+        idx = 0
+        while idx < len(record_list):
+            existing_record_name = record_list[idx].athlete_name
+            if existing_record_name in athlete_names:
+                # Avoid same person appearing multiple times
+                del record_list[idx]
+            else:
+                athlete_names[existing_record_name] = True
+            idx += 1
+        # Keep list at max required length 
         del record_list[max_records_all :]
 
 def process_one_rankings_table(rows, gender):
