@@ -5,11 +5,12 @@ import sys
 
 
 class Performance():
-    def __init__(self, event, score, athlete_name, athlete_url='', fixture_name='', fixture_url=''):
+    def __init__(self, event, score, athlete_name, athlete_url='', date='', fixture_name='', fixture_url=''):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
         self.athlete_name = athlete_name
         self.athlete_url = athlete_url
+        self.date = date
         self.fixture_name = fixture_name
         self.fixture_url = fixture_url
 
@@ -22,6 +23,7 @@ class HtmlBlock():
 record = {} # dict of events, each dict of genders, then ordered list of performances
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_regords_age_group = 3 # Similarly per age group
+powerof10_root_url = 'https://thepowerof10.info'
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
@@ -129,7 +131,7 @@ def make_numeric_score_from_performance_string(perf):
     return total_score
 
 
-def process_performance(event, gender, perf, name, url):
+def process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url):
     if event not in record:
         # First occurrence of this event so start new
         record[event] = {}
@@ -161,7 +163,8 @@ def process_performance(event, gender, perf, name, url):
         # TODO getting equal scores in resuls currently...
 
     if add_record:
-        perf = Performance(event, score, name, url)
+        perf = Performance(event, score, name, powerof10_root_url+url, 
+                           date, fixture_name, powerof10_root_url+fixture_url)
         record_list.append(perf)
         record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
         athlete_names = {}
@@ -211,7 +214,12 @@ def process_one_rankings_table(rows, gender):
                     name = anchor[0].inner_text
                     url = anchor[0].attribs["href"]
                     perf = cells[heading_idx['Perf']].inner_text
-                    process_performance(event, gender, perf, name, url)
+                    date = cells[heading_idx['Date']].inner_text
+                    venue_link = cells[heading_idx['Venue']]
+                    anchor = get_html_content(venue_link.inner_text, 'a')
+                    fixture_name = anchor[0].inner_text
+                    fixture_url = anchor[0].attribs["href"]
+                    process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url)
         else:
             # unknown state
             state = "seeking_title"
@@ -226,7 +234,7 @@ def process_one_year_gender(club_id, year, gender):
                       'firstclaimonly' : 'y',
                       'limits'         : 'n'} # y faster for debug but don't want to miss rarely performed events so 'n' for completeness
 
-    page_response = requests.get('https://thepowerof10.info/rankings/rankinglists.aspx', request_params)
+    page_response = requests.get(powerof10_root_url + '/rankings/rankinglists.aspx', request_params)
 
     print(f'Club {club_id} year {year} gender {gender} page return status {page_response.status_code}')
 
@@ -297,13 +305,13 @@ def output_records():
             print(f'Records for {event} {gender}')
             for idx, perf in enumerate(record_list):
                 score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], known_events_lookup[event][2])
-                print(f'{idx+1} {score_str} {perf.athlete_name}')
+                print(f'{idx+1} {score_str} {perf.athlete_name} {perf.date} {perf.fixture_name}')
             print()
 
 
 def main(club_id=238):
     first_year = 2005
-    last_year = 2010
+    last_year = 2005
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
             process_one_year_gender(club_id, year, gender)
