@@ -25,42 +25,45 @@ max_regords_age_group = 3 # Similarly per age group
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
-known_events = [('60' , True, 1),
-                               ('100', True, 1),
-                               ('200', True, 1),
-                               ('400', True, 1),
-                               ('800', True, 2),
-                               ('1500', True, 2),
-                               ('3000', True, 2),
-                               ('5000', True, 2),
-                               ('10000', True, 2),
-                               ('3000SC', True, 2),
-                               ('3000SCW', True, 2),
-                               ('100HW', True, 1),
-                               ('110H', True, 1),
-                               ('400H', True, 1),
-                               ('400HW', True, 1),
-                               ('HJ', False, 1),
-                               ('PV', False, 1),
-                               ('LJ', False, 1),
-                               ('TJ', False, 1),
-                               ('SP4K', False, 1),
-                               ('SP7.26K', False, 1),
-                               ('DT1K', False, 1),
-                               ('DT2K', False, 1),
-                               ('HT4K', False, 1),
-                               ('HT7.26K', False, 1),
-                               ('JT600', False, 1),
-                               ('JT800', False, 1),
-                               ('HepW', False, 1),
-                               ('Dec', False, 1),
-                               ('10K', True, 2),
-                               ('HM', True, 2),
-                               ('Mar', True, 3)  ]
+#           event,   small-is-good, numbers, decimal places
+known_events = [
+                ('10K',     True,  2, 0),
+                ('HM',      True,  2, 0),
+                ('Mar',     True,  3, 0),
+                ('60' ,     True,  1, 2),
+                ('100',     True,  1, 2),
+                ('200',     True,  1, 2),
+                ('400',     True,  1, 2),
+                ('800',     True,  2, 2),
+                ('1500',    True,  2, 2),
+                ('3000',    True,  2, 1),
+                ('5000',    True,  2, 1),
+                ('10000',   True,  2, 1),
+                ('3000SC',  True,  2, 1),
+                ('3000SCW', True,  2, 1),
+                ('100HW',   True,  1, 2),
+                ('110H',    True,  1, 2),
+                ('400H',    True,  1, 2),
+                ('400HW',   True,  1, 2),
+                ('HJ',      False, 1, 2),
+                ('PV',      False, 1, 2),
+                ('LJ',      False, 1, 2),
+                ('TJ',      False, 1, 2),
+                ('SP4K',    False, 1, 2),
+                ('SP7.26K', False, 1, 2),
+                ('DT1K',    False, 1, 2),
+                ('DT2K',    False, 1, 2),
+                ('HT4K',    False, 1, 2),
+                ('HT7.26K', False, 1, 2),
+                ('JT600',   False, 1, 2),
+                ('JT800',   False, 1, 2),
+                ('HepW',    False, 1, 0),
+                ('Dec',     False, 1, 0)
+ ]
 
 known_events_lookup = {}
-for (event, smaller_better, numbers) in known_events:
-    known_events_lookup[event] = (smaller_better, numbers)
+for (event, smaller_better, numbers, decimals) in known_events:
+    known_events_lookup[event] = (smaller_better, numbers, decimals)
 
 
 def get_html_content(html_text, html_tag):
@@ -155,6 +158,7 @@ def process_performance(event, gender, perf, name, url):
             if score < prev_worst_score: add_record = True
         else:
             if score > prev_worst_score: add_record = True
+        # TODO getting equal scores in resuls currently...
 
     if add_record:
         perf = Performance(event, score, name, url)
@@ -215,12 +219,12 @@ def process_one_rankings_table(rows, gender):
 
 def process_one_year_gender(club_id, year, gender):
 
-    request_params = {'clubid' : str(club_id),
-                      'agegroups' : 'ALL',
-                      'sex' : gender,
-                      'year' : str(year),
+    request_params = {'clubid'         : str(club_id),
+                      'agegroups'      : 'ALL',
+                      'sex'            : gender,
+                      'year'           : str(year),
                       'firstclaimonly' : 'y',
-                      'limits' : 'y'} # y faster for debug but don't want to miss rarely performed events so 'n' for completeness
+                      'limits'         : 'n'} # y faster for debug but don't want to miss rarely performed events so 'n' for completeness
 
     page_response = requests.get('https://thepowerof10.info/rankings/rankinglists.aspx', request_params)
 
@@ -256,7 +260,7 @@ def process_one_year_gender(club_id, year, gender):
     if debug:
         sys.exit(0)
 
-def format_sexagesimal(value, num_numbers):
+def format_sexagesimal(value, num_numbers, decimal_places):
     """Format as HH:MM:SS (3 numbers), SS.sss (1 number) etc"""
     output = ''
     divisor = 60 ** (num_numbers - 1)
@@ -268,12 +272,16 @@ def format_sexagesimal(value, num_numbers):
             output += "%.2d:" % quotient # leading zero if needed after first number
         value -= (quotient * divisor)
         divisor /= 60
-    if (num_numbers == 1):
-        output += "%.2f" % value
-    elif (num_numbers == 2):
-        output += "%04.1f" % value # leading zero if needed after first number
+    
+    if   decimal_places == 0:
+        fmt = '%02.0f' if num_numbers > 1 else '%.0f'
+    elif decimal_places == 1:
+        fmt = '%04.1f' if num_numbers > 1 else '%.1f'
+    elif decimal_places == 2:
+        fmt = '%05.2f' if num_numbers > 1 else '%.2f'
     else:
-        output += "%02d" % int(value) # for marathon h:m:s don't want fractions of a sec
+        fmt = '%06.3f' if num_numbers > 1 else '%.3f'
+    output += fmt % value
 
     return output
 
@@ -281,21 +289,21 @@ def format_sexagesimal(value, num_numbers):
 def output_records():
     # As debug just do a few events
 
-    for event in ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
+    for (event, _, _, _) in known_events: # debug: ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
         if event not in record: continue
         for gender in ['W', 'M']:
             record_list = record[event].get(gender)
             if not record_list: continue
             print(f'Records for {event} {gender}')
             for idx, perf in enumerate(record_list):
-                score_str = format_sexagesimal(perf.score, known_events_lookup[event][1])
+                score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], known_events_lookup[event][2])
                 print(f'{idx+1} {score_str} {perf.athlete_name}')
             print()
 
 
 def main(club_id=238):
     first_year = 2005
-    last_year = 2023
+    last_year = 2010
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
             process_one_year_gender(club_id, year, gender)
