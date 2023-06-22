@@ -5,12 +5,12 @@ import sys
 
 class Performance():
     def __init__(self, event, score, athlete_name, athlete_url='', fixture_name='', fixture_url=''):
-        self.event = ''
-        self.score = 0.0 # could be time in sec, distance in m or multievent points
-        self.athlete_name = ''
-        self.athlete_url = ''
-        self.fixture_name = ''
-        self.fixture_url = ''
+        self.event = event
+        self.score = score # could be time in sec, distance in m or multievent points
+        self.athlete_name = athlete_name
+        self.athlete_url = athlete_url
+        self.fixture_name = fixture_name
+        self.fixture_url = fixture_url
 
 class HtmlBlock():
     def __init__(self, tag=''):
@@ -107,7 +107,20 @@ def get_html_content(html_text, html_tag):
 def debold(bold_tagged_string):
     return bold_tagged_string.replace('<b>', '').replace('</b>', '')
 
-def process_performance(event, gender, score, name, url):
+def make_numeric_score_from_performance_string(perf):
+    # For values like 2:17:23 or 1:28.37 need to split (hours)/mins/sec
+    total_score = 0.0
+    multiplier = 1.0
+    sexagesimals = perf.split(':')
+    sexagesimals.reverse()
+    for sexagesmial in sexagesimals:
+        total_score += float(sexagesmial) * multiplier
+        multiplier *= 60.0
+
+    return total_score
+
+
+def process_performance(event, gender, perf, name, url):
     if event not in record:
         # First occurrence of this event so start new
         record[event] = {}
@@ -119,6 +132,8 @@ def process_performance(event, gender, score, name, url):
         print(f'Warning: unknown event {event}, ignoring')
         return
     smaller_score_better = known_events_smaller_better[event]
+
+    score = make_numeric_score_from_performance_string(perf)
 
     record_list = record[event][gender]
     add_record = False
@@ -138,7 +153,7 @@ def process_performance(event, gender, score, name, url):
     if add_record:
         perf = Performance(event, score, name, url)
         record_list.append(perf)
-        record_list.sort(key=lambda x: x.score, reverse=smaller_score_better)
+        record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
         record_list = record_list[:max_records_all]
 
 def process_one_rankings_table(rows, gender):
@@ -188,7 +203,7 @@ def process_one_year_gender(club_id, year, gender):
                       'sex' : gender,
                       'year' : str(year),
                       'firstclaimonly' : 'y',
-                      'limits' : 'n'}
+                      'limits' : 'n'} # get a lot of results with no limits in recent years but don't want to miss rarely performed events
 
     page_response = requests.get('https://thepowerof10.info/rankings/rankinglists.aspx', request_params)
 
@@ -232,9 +247,9 @@ def output_records():
         for gender in ['W', 'M']:
             record_list = record[event].get(gender)
             if not record_list: continue
-            print(f'Records for f{event} f{gender}')
+            print(f'Records for {event} {gender}')
             for idx, perf in enumerate(record_list):
-                print(f'{idx+1} f{perf.score} f{perf.athlete_name}')
+                print(f'{idx+1} {perf.score} {perf.athlete_name}')
             print()
 
 
