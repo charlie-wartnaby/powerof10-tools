@@ -6,9 +6,10 @@ import sys
 
 
 class Performance():
-    def __init__(self, event, score, athlete_name, athlete_url='', date='', fixture_name='', fixture_url=''):
+    def __init__(self, event, score, decimal_places, athlete_name, athlete_url='', date='', fixture_name='', fixture_url=''):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
+        self.decimal_places = decimal_places # so we can use original precision which may imply electronic timing etc
         self.athlete_name = athlete_name
         self.athlete_url = athlete_url
         self.date = date
@@ -31,45 +32,45 @@ powerof10_root_url = 'https://thepowerof10.info'
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
-#           event,   small-is-good, numbers, decimal places
+#                event, small-is-good, :-numbers
 known_events = [
-                ('10K',     True,  2, 0),
-                ('HM',      True,  2, 0),
-                ('Mar',     True,  3, 0),
-                ('60' ,     True,  1, 2),
-                ('100',     True,  1, 2),
-                ('200',     True,  1, 2),
-                ('400',     True,  1, 2),
-                ('800',     True,  2, 2),
-                ('1500',    True,  2, 2),
-                ('3000',    True,  2, 2),
-                ('5000',    True,  2, 2),
-                ('10000',   True,  2, 2),
-                ('3000SC',  True,  2, 2),
-                ('3000SCW', True,  2, 2),
-                ('100HW',   True,  1, 2),
-                ('110H',    True,  1, 2),
-                ('400H',    True,  1, 2),
-                ('400HW',   True,  1, 2),
-                ('HJ',      False, 1, 2),
-                ('PV',      False, 1, 2),
-                ('LJ',      False, 1, 2),
-                ('TJ',      False, 1, 2),
-                ('SP4K',    False, 1, 2),
-                ('SP7.26K', False, 1, 2),
-                ('DT1K',    False, 1, 2),
-                ('DT2K',    False, 1, 2),
-                ('HT4K',    False, 1, 2),
-                ('HT7.26K', False, 1, 2),
-                ('JT600',   False, 1, 2),
-                ('JT800',   False, 1, 2),
-                ('HepW',    False, 1, 0),
-                ('Dec',     False, 1, 0)
+                ('10K',     True,        2),
+                ('HM',      True,        2),
+                ('Mar',     True,        3),
+                ('60' ,     True,        1),
+                ('100',     True,        1),
+                ('200',     True,        1),
+                ('400',     True,        1),
+                ('800',     True,        2),
+                ('1500',    True,        2),
+                ('3000',    True,        2),
+                ('5000',    True,        2),
+                ('10000',   True,        2),
+                ('3000SC',  True,        2),
+                ('3000SCW', True,        2),
+                ('100HW',   True,        1),
+                ('110H',    True,        1),
+                ('400H',    True,        1),
+                ('400HW',   True,        1),
+                ('HJ',      False,       1),
+                ('PV',      False,       1),
+                ('LJ',      False,       1),
+                ('TJ',      False,       1),
+                ('SP4K',    False,       1),
+                ('SP7.26K', False,       1),
+                ('DT1K',    False,       1),
+                ('DT2K',    False,       1),
+                ('HT4K',    False,       1),
+                ('HT7.26K', False,       1),
+                ('JT600',   False,       1),
+                ('JT800',   False,       1),
+                ('HepW',    False,       1),
+                ('Dec',     False,       1)
  ]
 
 known_events_lookup = {}
-for (event, smaller_better, numbers, decimals) in known_events:
-    known_events_lookup[event] = (smaller_better, numbers, decimals)
+for (event, smaller_better, numbers) in known_events:
+    known_events_lookup[event] = (smaller_better, numbers)
 
 
 def get_html_content(html_text, html_tag):
@@ -131,8 +132,10 @@ def make_numeric_score_from_performance_string(perf):
     for sexagesmial in sexagesimals:
         total_score += float(sexagesmial) * multiplier
         multiplier *= 60.0
+    decimal_split = perf.split('.')
+    decimal_places = 0 if len(decimal_split) < 2 else len(decimal_split[1])
 
-    return total_score
+    return total_score, decimal_places
 
 
 def process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url):
@@ -148,7 +151,7 @@ def process_performance(event, gender, perf, name, url, date, fixture_name, fixt
         return
     smaller_score_better = known_events_lookup[event][0]
 
-    score = make_numeric_score_from_performance_string(perf)
+    score, original_dp = make_numeric_score_from_performance_string(perf)
 
     record_list = record[event][gender]
     add_record = False
@@ -167,7 +170,7 @@ def process_performance(event, gender, perf, name, url, date, fixture_name, fixt
         # TODO getting equal scores in resuls currently...
 
     if add_record:
-        perf = Performance(event, score, name, powerof10_root_url+url, 
+        perf = Performance(event, score, original_dp, name, powerof10_root_url+url, 
                            date, fixture_name, powerof10_root_url+fixture_url)
         record_list.append(perf)
         record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
@@ -308,7 +311,7 @@ def output_records(output_file, first_year, last_year, club_id):
         fd.write(f'<a href="{powerof10_root_url}/clubs/club.aspx?clubid={club_id}">PowerOf10 club page</a>')
         fd.write(f' {first_year} - {last_year}')
         fd.write(f' on {datetime.date.today()}.</p>\n\n')
-        for (event, _, _, _) in known_events: # debug: ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
+        for (event, _, _) in known_events: # debug: ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
             if event not in record: continue
             for gender in ['W', 'M']:
                 record_list = record[event].get(gender)
@@ -319,7 +322,7 @@ def output_records(output_file, first_year, last_year, club_id):
                 fd.write('<td><b>Rank</b></td><td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
                 fd.write('</tr>\n')
                 for idx, perf in enumerate(record_list):
-                    score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], known_events_lookup[event][2])
+                    score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
                     fd.write('<tr>\n')
                     fd.write(f'  <td>{idx+1}</td>\n')
                     fd.write(f'  <td>{score_str}</td>\n')
