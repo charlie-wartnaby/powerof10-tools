@@ -142,6 +142,7 @@ But all time rankings have results pre-2003 e.g. in
 https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=Mar&agegroup=ALL&sex=M&alltime=y
 (Can omit agegroup=ALL)
 Can also miss results if omit sex=M/W.
+https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=Mar&agegroup=ALL&sex=M&year=2005&clubid=238
 
 Get handy Javascript source like this (can just eval() in Python?), pagination then done from list:
 

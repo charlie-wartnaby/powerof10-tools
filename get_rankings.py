@@ -1,3 +1,4 @@
+from array import array
 import datetime
 import math
 import re
@@ -6,7 +7,8 @@ import sys
 
 
 class Performance():
-    def __init__(self, event, score, decimal_places, athlete_name, athlete_url='', date='', fixture_name='', fixture_url=''):
+    def __init__(self, event, score, decimal_places, athlete_name, athlete_url='', date='',
+                       fixture_name='', fixture_url='', source=''):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
         self.decimal_places = decimal_places # so we can use original precision which may imply electronic timing etc
@@ -15,6 +17,7 @@ class Performance():
         self.date = date
         self.fixture_name = fixture_name
         self.fixture_url = fixture_url
+        self.source = source
 
 class HtmlBlock():
     def __init__(self, tag=''):
@@ -26,6 +29,7 @@ record = {} # dict of events, each dict of genders, then ordered list of perform
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_regords_age_group = 3 # Similarly per age group
 powerof10_root_url = 'https://thepowerof10.info'
+runbritain_root_url = 'https://www.runbritainrankings.com'
 
 # TODO should maybe use original precision for performances as don't want to imply electronic
 # timing with additional decimal places that were never originally there, say.
@@ -138,7 +142,7 @@ def make_numeric_score_from_performance_string(perf):
     return total_score, decimal_places
 
 
-def process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url):
+def process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url, source):
     if event not in record:
         # First occurrence of this event so start new
         record[event] = {}
@@ -171,7 +175,7 @@ def process_performance(event, gender, perf, name, url, date, fixture_name, fixt
 
     if add_record:
         perf = Performance(event, score, original_dp, name, powerof10_root_url+url, 
-                           date, fixture_name, powerof10_root_url+fixture_url)
+                           date, fixture_name, powerof10_root_url+fixture_url, source)
         record_list.append(perf)
         record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
         athlete_names = {}
@@ -187,7 +191,7 @@ def process_performance(event, gender, perf, name, url, date, fixture_name, fixt
         # Keep list at max required length 
         del record_list[max_records_all :]
 
-def process_one_rankings_table(rows, gender):
+def process_one_rankings_table(rows, gender, source):
     state = "seeking_title"
     row_idx = 0
     while True:
@@ -226,13 +230,13 @@ def process_one_rankings_table(rows, gender):
                     anchor = get_html_content(venue_link.inner_text, 'a')
                     fixture_name = anchor[0].inner_text
                     fixture_url = anchor[0].attribs["href"]
-                    process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url)
+                    process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url, source)
         else:
             # unknown state
             state = "seeking_title"
         row_idx += 1
 
-def process_one_year_gender(club_id, year, gender):
+def process_one_po10_year_gender(club_id, year, gender):
 
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : 'ALL',
@@ -246,7 +250,8 @@ def process_one_year_gender(club_id, year, gender):
     print(f'Club {club_id} year {year} gender {gender} page return status {page_response.status_code}')
 
     if page_response.status_code != 200:
-        raise Exception(f'HTTP error code fetching page: {page_response.status_code}')
+        print(f'HTTP error code fetching page: {page_response.status_code}')
+        return
 
     debug = False
     if debug:
@@ -255,6 +260,8 @@ def process_one_year_gender(club_id, year, gender):
     else:
         input_text = page_response.text
         
+    source = f'Po10 {year}'
+
     tables = get_html_content(input_text, 'table')
     second_level_tables = []
     for table in tables:
@@ -270,10 +277,37 @@ def process_one_year_gender(club_id, year, gender):
         if 'class' not in rows[1].attribs or rows[1].attribs['class'] != 'rankinglistheadings':
             continue
         # Looks like we've found the table of results
-        process_one_rankings_table(rows, gender)
+        process_one_rankings_table(rows, gender, source)
 
     if debug:
         sys.exit(0)
+
+def process_one_runbritain_year_gender(club_id, year, gender, event):
+
+    request_params = {'clubid'       : str(club_id),
+                      'agegroup'     : 'ALL',
+                      'sex'          : gender,
+                      'year'         : str(year),
+                      'event'        : event}
+
+    page_response = requests.get(runbritain_root_url + '/rankings/rankinglist.aspx', request_params)
+
+    print(f'Runbritain club {club_id} year {year} gender {gender} page return status {page_response.status_code}')
+
+    if page_response.status_code != 200:
+        print(f'HTTP error code fetching page: {page_response.status_code}')
+        return
+
+    input_text = page_response.text
+    results_array_regex = re.compile(r'runners =\s*(\[.*?\];)', flags=re.DOTALL)
+    array_match = results_array_regex.search(input_text)
+
+    if array_match is None:
+        print('No data found')
+    else:
+        array_str = array_match.group(1)
+        results_array = eval(array_str)
+        #process_one_rankings_table(rows, gender)
 
 def format_sexagesimal(value, num_numbers, decimal_places):
     """Format as HH:MM:SS (3 numbers), SS.sss (1 number) etc"""
@@ -329,16 +363,21 @@ def output_records(output_file, first_year, last_year, club_id):
                     fd.write(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
                     fd.write(f'  <td>{perf.date}</td>\n')
                     fd.write(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
-                    fd.write(f'  <td>Po10 {first_year}-{last_year}')
+                    fd.write(f'  <td>{perf.source}</td></n>')
                     fd.write('</tr>\n')
                 fd.write('</table>\n\n')
         fd.write('</body>\n')
         fd.write('</html>\n')
 
-def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023):
+def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2006, do_po10=False, do_runbritain=True):
+
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
-            process_one_year_gender(club_id, year, gender)
+            if do_po10:
+                process_one_po10_year_gender(club_id, year, gender)
+            if do_runbritain:
+                for event in  ['Mar']:
+                    process_one_runbritain_year_gender(club_id, year, gender, event)
 
     output_records(output_file, first_year, last_year, club_id)
 
