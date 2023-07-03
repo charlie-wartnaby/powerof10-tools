@@ -299,15 +299,29 @@ def process_one_runbritain_year_gender(club_id, year, gender, event):
         return
 
     input_text = page_response.text
-    results_array_regex = re.compile(r'runners =\s*(\[.*?\];)', flags=re.DOTALL)
+    results_array_regex = re.compile(r'runners =\s*(\[.*?\]);', flags=re.DOTALL)
     array_match = results_array_regex.search(input_text)
 
     if array_match is None:
         print('No data found')
     else:
+        source = f'Runbritain {year}'
         array_str = array_match.group(1)
+        array_str = array_str.replace('\n', ' ').replace('\r', '')
         results_array = eval(array_str)
-        #process_one_rankings_table(rows, gender)
+        for result in results_array:
+            anchor = get_html_content(result[6], 'a')
+            name = anchor[0].inner_text
+            url = anchor[0].attribs["href"]
+            perf = result[1] # Chip time
+            if not perf:
+                perf = result[3] # Gun time
+            date = result[10]
+            venue_link = result[9]
+            anchor = get_html_content(venue_link, 'a')
+            fixture_name = anchor[0].inner_text
+            fixture_url = anchor[0].attribs["href"]
+            process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url, source)
 
 def format_sexagesimal(value, num_numbers, decimal_places):
     """Format as HH:MM:SS (3 numbers), SS.sss (1 number) etc"""
