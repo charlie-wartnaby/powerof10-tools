@@ -412,7 +412,7 @@ def output_records(output_file, first_year, last_year, club_id):
         fd.write(f' {first_year} - {last_year}')
         fd.write(f' on {datetime.date.today()}.</p>\n\n')
 
-        for (category, _, _) in [('ALL', 0, 0), ('V50', 50, 54)]: # age_categories: 
+        for (category, _, _) in age_categories: #  [('ALL', 0, 0), ('V50', 50, 54)]
             if category not in record: continue   
             fd.write(f'<h2>Age category: {category}</h2>')
             for (event, _, _) in known_events: # debug: ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
@@ -447,7 +447,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023
                 process_one_po10_year_gender(club_id, year, gender)
             if do_runbritain:
                 for (event, _, _) in [('Mar', True, 3)]: # known_events
-                    for (category, _, _) in [('V50', 50, 54), ('ALL', 0, 0)]: # age_categories:
+                    for (category, _, _) in age_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
                         process_one_runbritain_year_gender(club_id, year, gender, category, event)
 
     output_records(output_file, first_year, last_year, club_id)
