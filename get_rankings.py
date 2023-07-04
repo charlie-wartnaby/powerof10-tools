@@ -25,7 +25,7 @@ class HtmlBlock():
         self.inner_text = ''
         self.attribs = {}
 
-record = {} # dict of events, each dict of genders, then ordered list of performances
+record = {} # dict of age groups, each dict of events, each dict of genders, then ordered list of performances
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_regords_age_group = 3 # Similarly per age group
 powerof10_root_url = 'https://thepowerof10.info'
@@ -81,6 +81,37 @@ known_events = [
 known_events_lookup = {}
 for (event, smaller_better, numbers) in known_events:
     known_events_lookup[event] = (smaller_better, numbers)
+
+# Runbritain age categories
+# TODO I don't understand difference between on-the-day and "season" age
+# If both min and max are 0, need to search using category name not age range.
+# Otherwise use age range as runbritain skips some results if use category name, oddly.
+age_categories = [ # name       min  max years old
+              ('ALL',        0,    0),
+              ('Disability', 0,    0),
+              ('U13',        1,   12),
+              ('U15',        13,  14),
+              ('U17',        15,  16),
+              ('U20',        17,  19),
+              ('U23',        20,  22),
+              # Skipping senior as have all-age records
+              ('V35',        35,  39),
+              ('V40',        40,  44),
+              ('V45',        45,  49),
+              ('V50',        50,  54),
+              ('V55',        55,  59),
+              ('V60',        60,  64),
+              ('V65',        65,  69),
+              ('V70',        70,  74),
+              ('V75',        75,  79),
+              ('V80',        80,  84),
+              ('V85',        85,  89),
+              ('V90',        90, 120)
+]
+
+age_category_lookup = {}
+for (category, min_age, max_age) in age_categories:
+    age_category_lookup[category] = (min_age, max_age)
 
 
 def get_html_content(html_text, html_tag):
@@ -148,13 +179,15 @@ def make_numeric_score_from_performance_string(perf):
     return total_score, decimal_places
 
 
-def process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url, source):
-    if event not in record:
+def process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source):
+    if category not in record:
+        record[category] = {}
+    if event not in record[category]:
         # First occurrence of this event so start new
-        record[event] = {}
-    if gender not in record[event]:
+        record[category][event] = {}
+    if gender not in record[category][event]:
         # First performance by this gender in this event so start new list
-        record[event][gender] = []
+        record[category][event][gender] = []
 
     if event not in known_events_lookup:
         print(f'Warning: unknown event {event}, ignoring')
@@ -163,9 +196,11 @@ def process_performance(event, gender, perf, name, url, date, fixture_name, fixt
 
     score, original_dp = make_numeric_score_from_performance_string(perf)
 
-    record_list = record[event][gender]
+    max_records = max_records_all if category == 'ALL' else max_regords_age_group
+
+    record_list = record[category][event][gender]
     add_record = False
-    if len(record_list) < max_records_all:
+    if len(record_list) < max_records:
         # We don't have enough records for this event yet so add
         add_record = True
     else:
@@ -195,7 +230,7 @@ def process_performance(event, gender, perf, name, url, date, fixture_name, fixt
                 athlete_names[existing_record_name] = True
             idx += 1
         # Keep list at max required length 
-        del record_list[max_records_all :]
+        del record_list[max_records :]
 
 def process_one_rankings_table(rows, gender, source):
     state = "seeking_title"
@@ -236,7 +271,7 @@ def process_one_rankings_table(rows, gender, source):
                     anchor = get_html_content(venue_link.inner_text, 'a')
                     fixture_name = anchor[0].inner_text
                     fixture_url = powerof10_root_url + anchor[0].attribs["href"]
-                    process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url, source)
+                    process_performance(event, gender, 'ALL', perf, name, url, date, fixture_name, fixture_url, source)
         else:
             # unknown state
             state = "seeking_title"
@@ -245,7 +280,7 @@ def process_one_rankings_table(rows, gender, source):
 def process_one_po10_year_gender(club_id, year, gender):
 
     request_params = {'clubid'         : str(club_id),
-                      'agegroups'      : 'ALL',
+                      'agegroups'      : 'ALL',   # TODO can do junior/youth
                       'sex'            : gender,
                       'year'           : str(year),
                       'firstclaimonly' : 'y',
@@ -288,17 +323,26 @@ def process_one_po10_year_gender(club_id, year, gender):
     if debug:
         sys.exit(0)
 
-def process_one_runbritain_year_gender(club_id, year, gender, event):
+def process_one_runbritain_year_gender(club_id, year, gender, category, event):
 
     request_params = {'clubid'       : str(club_id),
-                      'agegroup'     : 'ALL',
                       'sex'          : gender,
                       'year'         : str(year),
                       'event'        : event}
 
+    (min_age, max_age) = age_category_lookup[category]
+    if min_age == 0 and max_age == 0:
+        # Use category name
+        request_params['agegroup'] = category
+    else:
+        # Runbritain can miss results if use e.g. V40 category that it finds if
+        # use numeric age range, so use latter instead
+        request_params['agemin'] = str(min_age)
+        request_params['agemax'] = str(max_age)
+
     page_response = requests.get(runbritain_root_url + '/rankings/rankinglist.aspx', request_params)
 
-    print(f'Runbritain club {club_id} year {year} gender {gender} event {event} page return status {page_response.status_code}')
+    print(f'Runbritain club {club_id} year {year} gender {gender} category {category} event {event} page return status {page_response.status_code}')
 
     if page_response.status_code != 200:
         print(f'HTTP error code fetching page: {page_response.status_code}')
@@ -328,7 +372,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, event):
             anchor = get_html_content(venue_link, 'a')
             fixture_name = anchor[0].inner_text
             fixture_url = runbritain_root_url + anchor[0].attribs["href"]
-            process_performance(event, gender, perf, name, url, date, fixture_name, fixture_url, source)
+            process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
 
 def format_sexagesimal(value, num_numbers, decimal_places):
     """Format as HH:MM:SS (3 numbers), SS.sss (1 number) etc"""
@@ -364,41 +408,47 @@ def output_records(output_file, first_year, last_year, club_id):
         fd.write(f'<h1>Club Records</h1>\n')
         fd.write(f'<p>Initially autogenerated from ')
         fd.write(f'<a href="{powerof10_root_url}/clubs/club.aspx?clubid={club_id}">PowerOf10 club page</a>')
-        fd.write(f'and runbritain rankings {first_year} - {last_year}')
+        fd.write(f' and <a href="{runbritain_root_url}/rankings/rankinglist.aspx">runbritain rankings</a>')
+        fd.write(f' {first_year} - {last_year}')
         fd.write(f' on {datetime.date.today()}.</p>\n\n')
-        for (event, _, _) in known_events: # debug: ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
-            if event not in record: continue
-            for gender in ['W', 'M']:
-                record_list = record[event].get(gender)
-                if not record_list: continue
-                fd.write(f'<h2>Records for {event} {gender}</h2>\n\n')
-                fd.write('<table border="2">\n')
-                fd.write('<tr>\n')
-                fd.write('<td><b>Rank</b></td><td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
-                fd.write('</tr>\n')
-                for idx, perf in enumerate(record_list):
-                    score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
+
+        for (category, _, _) in [('ALL', 0, 0), ('V50', 50, 54)]: # age_categories: 
+            if category not in record: continue   
+            fd.write(f'<h2>Age category: {category}</h2>')
+            for (event, _, _) in known_events: # debug: ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']:
+                if event not in record[category]: continue
+                for gender in ['W', 'M']:
+                    record_list = record[category][event].get(gender)
+                    if not record_list: continue
+                    fd.write(f'<h3>Records for {event} {gender} {category}</h3>\n\n')
+                    fd.write('<table border="2">\n')
                     fd.write('<tr>\n')
-                    fd.write(f'  <td>{idx+1}</td>\n')
-                    fd.write(f'  <td>{score_str}</td>\n')
-                    fd.write(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
-                    fd.write(f'  <td>{perf.date}</td>\n')
-                    fd.write(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
-                    fd.write(f'  <td>{perf.source}</td></n>')
+                    fd.write('<td><b>Rank</b></td><td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
                     fd.write('</tr>\n')
-                fd.write('</table>\n\n')
+                    for idx, perf in enumerate(record_list):
+                        score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
+                        fd.write('<tr>\n')
+                        fd.write(f'  <td>{idx+1}</td>\n')
+                        fd.write(f'  <td>{score_str}</td>\n')
+                        fd.write(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
+                        fd.write(f'  <td>{perf.date}</td>\n')
+                        fd.write(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
+                        fd.write(f'  <td>{perf.source}</td></n>')
+                        fd.write('</tr>\n')
+                    fd.write('</table>\n\n')
         fd.write('</body>\n')
         fd.write('</html>\n')
 
-def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, do_po10=True, do_runbritain=True):
+def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, do_po10=False, do_runbritain=True):
 
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
             if do_po10:
                 process_one_po10_year_gender(club_id, year, gender)
             if do_runbritain:
-                for (event, _, _) in known_events: # debug: ['10K', 'HM', 'Mar', 'LJ', 'HepW', 'Dec']: ['Mar']:
-                    process_one_runbritain_year_gender(club_id, year, gender, event)
+                for (event, _, _) in [('Mar', True, 3)]: # known_events
+                    for (category, _, _) in [('V50', 50, 54), ('ALL', 0, 0)]: # age_categories:
+                        process_one_runbritain_year_gender(club_id, year, gender, category, event)
 
     output_records(output_file, first_year, last_year, club_id)
 
