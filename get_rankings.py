@@ -32,87 +32,116 @@ max_regords_age_group = 3 # Similarly per age group
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
 
-# TODO should maybe use original precision for performances as don't want to imply electronic
-# timing with additional decimal places that were never originally there, say.
+# TODO not very efficient because some events are only for one junior age group
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
-#                event, small-is-good, :-numbers
+#                event, small-is-good, :-numbers, runbritain
 known_events = [
-                ('5K',      True,        2),
-                ('parkrun', True,        2),
-                ('5M',      True,        2),
-                ('10K',     True,        2),
-                ('10M',     True,        2),
-                ('HM',      True,        2),
-                ('Mar',     True,        3),
-                ('50K',     True,        3),
-                ('100K',    True,        3),
-                ('60' ,     True,        1),
-                ('100',     True,        1),
-                ('200',     True,        1),
-                ('400',     True,        1),
-                ('800',     True,        2),
-                ('1500',    True,        2),
-                ('3000',    True,        2),
-                ('5000',    True,        2),
-                ('10000',   True,        2),
-                ('3000SC',  True,        2),
-                ('3000SCW', True,        2),
-                ('100HW',   True,        1),
-                ('110H',    True,        1),
-                ('400H',    True,        1),
-                ('400HW',   True,        1),
-                ('HJ',      False,       1),
-                ('PV',      False,       1),
-                ('LJ',      False,       1),
-                ('TJ',      False,       1),
-                ('SP4K',    False,       1),
-                ('SP7.26K', False,       1),
-                ('DT1K',    False,       1),
-                ('DT2K',    False,       1),
-                ('HT4K',    False,       1),
-                ('HT7.26K', False,       1),
-                ('JT600',   False,       1),
-                ('JT800',   False,       1),
-                ('HepW',    False,       1),
-                ('Dec',     False,       1)
+                ('1M',      True,        2,        True     ),
+                ('2M',      True,        2,        True     ),
+                ('5K',      True,        2,        True     ),
+                ('parkrun', True,        2,        True     ),
+                ('4M',      True,        2,        True     ),
+                ('5M',      True,        2,        True     ),
+                ('10K',     True,        2,        True     ),
+                ('10M',     True,        2,        True     ),
+                ('HM',      True,        2,        True     ),
+                ('Mar',     True,        3,        True     ),
+                ('50K',     True,        3,        True     ),
+                ('100K',    True,        3,        True     ),
+                ('60' ,     True,        1,        False    ),
+                ('100',     True,        1,        False    ),
+                ('200',     True,        1,        False    ),
+                ('300',     True,        1,        False    ),
+                ('400',     True,        1,        False    ),
+                ('800',     True,        2,        True     ),
+                ('1500',    True,        2,        True     ),
+                ('Mile',    True,        2,        True     ),
+                ('3000',    True,        2,        True     ),
+                ('5000',    True,        2,        True     ),
+                ('10000',   True,        2,        True     ),
+                ('1500SCW', True,        2,        False    ),
+                ('2000SC',  True,        2,        False    ),
+                ('3000SC',  True,        2,        False    ),
+                ('3000SCW', True,        2,        False    ),
+                ('70HU13W', True,        1,        False    ),
+                ('75HU13M', True,        1,        False    ),
+                ('75HU15W', True,        1,        False    ),
+                ('80HU15M', True,        1,        False    ),
+                ('80HU17W', True,        1,        False    ),
+                ('100HW',   True,        1,        False    ),
+                ('110H',    True,        1,        False    ),
+                ('300HW',   True,        1,        False    ),
+                ('400H',    True,        1,        False    ),
+                ('400HW',   True,        1,        False    ),
+                ('HJ',      False,       1,        False    ),
+                ('PV',      False,       1,        False    ),
+                ('LJ',      False,       1,        False    ),
+                ('TJ',      False,       1,        False    ),
+                ('SP2.72K', False,       1,        False    ),
+                ('SP3K',    False,       1,        False    ),
+                ('SP3.25K', False,       1,        False    ),
+                ('SP4K',    False,       1,        False    ),
+                ('SP6K',    False,       1,        False    ),
+                ('SP7.26K', False,       1,        False    ),
+                ('DT0.75K', False,       1,        False    ),
+                ('DT1K',    False,       1,        False    ),
+                ('DT1.25K', False,       1,        False    ),
+                ('DT1.5K',  False,       1,        False    ),
+                ('DT1.75K', False,       1,        False    ),
+                ('DT2K',    False,       1,        False    ),
+                ('HT3K',    False,       1,        False    ),
+                ('HT4K',    False,       1,        False    ),
+                ('HT6K',    False,       1,        False    ),
+                ('HT7.26K', False,       1,        False    ),
+                ('JT400',   False,       1,        False    ),
+                ('JT500',   False,       1,        False    ),
+                ('JT600',   False,       1,        False    ),
+                ('JT700',   False,       1,        False    ),
+                ('JT800',   False,       1,        False    ),
+                ('PenU15W', False,       1,        False    ),
+                ('HepW',    False,       1,        False    ),
+                ('Dec',     False,       1,        False    )
  ]
 
 known_events_lookup = {}
-for (event, smaller_better, numbers) in known_events:
-    known_events_lookup[event] = (smaller_better, numbers)
+for (event, smaller_better, numbers, runbritain) in known_events:
+    known_events_lookup[event] = (smaller_better, numbers, runbritain)
+
+# PowerOf10 age categories (usable on club page)
+powerof10_categories = ['ALL', 'U13', 'U15', 'U17', 'U20']
 
 # Runbritain age categories
 # TODO I don't understand difference between on-the-day and "season" age
 # If both min and max are 0, need to search using category name not age range.
 # Otherwise use age range as runbritain skips some results if use category name, oddly.
-age_categories = [ # name       min  max years old
-              ('ALL',        0,    0),
-              ('Disability', 0,    0),
-              ('U13',        1,   12),
-              ('U15',        13,  14),
-              ('U17',        15,  16),
-              ('U20',        17,  19),
-              ('U23',        20,  22),
-              # Skipping senior as have all-age records
-              ('V35',        35,  39),
-              ('V40',        40,  44),
-              ('V45',        45,  49),
-              ('V50',        50,  54),
-              ('V55',        55,  59),
-              ('V60',        60,  64),
-              ('V65',        65,  69),
-              ('V70',        70,  74),
-              ('V75',        75,  79),
-              ('V80',        80,  84),
-              ('V85',        85,  89),
-              ('V90',        90, 120)
+runbritain_categories = [ # name       min  max years old
+                          ('ALL',        0,    0),
+                          ('Disability', 0,    0),
+                          ('U13',        1,   12),
+                          ('U15',        13,  14),
+                          ('U17',        15,  16),
+                          ('U20',        17,  19),
+                          ('U23',        20,  22),
+                          # Skipping senior as have all-age records
+                          ('V35',        35,  39),
+                          ('V40',        40,  44),
+                          ('V45',        45,  49),
+                          ('V50',        50,  54),
+                          ('V55',        55,  59),
+                          ('V60',        60,  64),
+                          ('V65',        65,  69),
+                          ('V70',        70,  74),
+                          ('V75',        75,  79),
+                          ('V80',        80,  84),
+                          ('V85',        85,  89),
+                          ('V90',        90, 120)
 ]
 
-age_category_lookup = {}
-for (category, min_age, max_age) in age_categories:
-    age_category_lookup[category] = (min_age, max_age)
+runbritain_category_lookup = {}
+for (category, min_age, max_age) in runbritain_categories:
+    runbritain_category_lookup[category] = (min_age, max_age)
 
 
 def get_html_content(html_text, html_tag):
@@ -233,7 +262,7 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
         # Keep list at max required length 
         del record_list[max_records :]
 
-def process_one_rankings_table(rows, gender, source):
+def process_one_rankings_table(rows, gender, category, source):
     state = "seeking_title"
     row_idx = 0
     while True:
@@ -272,16 +301,16 @@ def process_one_rankings_table(rows, gender, source):
                     anchor = get_html_content(venue_link.inner_text, 'a')
                     fixture_name = anchor[0].inner_text
                     fixture_url = powerof10_root_url + anchor[0].attribs["href"]
-                    process_performance(event, gender, 'ALL', perf, name, url, date, fixture_name, fixture_url, source)
+                    process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
         else:
             # unknown state
             state = "seeking_title"
         row_idx += 1
 
-def process_one_po10_year_gender(club_id, year, gender):
+def process_one_po10_year_gender(club_id, year, gender, category):
 
     request_params = {'clubid'         : str(club_id),
-                      'agegroups'      : 'ALL',   # TODO can do junior/youth
+                      'agegroups'      : category,
                       'sex'            : gender,
                       'year'           : str(year),
                       'firstclaimonly' : 'y',
@@ -289,7 +318,7 @@ def process_one_po10_year_gender(club_id, year, gender):
 
     page_response = requests.get(powerof10_root_url + '/rankings/rankinglists.aspx', request_params)
 
-    print(f'PowerOf10 club {club_id} year {year} gender {gender} page return status {page_response.status_code}')
+    print(f'PowerOf10 club {club_id} year {year} gender {gender} category {category} page return status {page_response.status_code}')
 
     if page_response.status_code != 200:
         print(f'HTTP error code fetching page: {page_response.status_code}')
@@ -319,7 +348,7 @@ def process_one_po10_year_gender(club_id, year, gender):
         if 'class' not in rows[1].attribs or rows[1].attribs['class'] != 'rankinglistheadings':
             continue
         # Looks like we've found the table of results
-        process_one_rankings_table(rows, gender, source)
+        process_one_rankings_table(rows, gender, category, source)
 
     if debug:
         sys.exit(0)
@@ -331,7 +360,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event):
                       'year'         : str(year),
                       'event'        : event}
 
-    (min_age, max_age) = age_category_lookup[category]
+    (min_age, max_age) = runbritain_category_lookup[category]
     if min_age == 0 and max_age == 0:
         # Use category name
         request_params['agegroup'] = category
@@ -411,7 +440,8 @@ def output_records(output_file, first_year, last_year, club_id):
         f'<a href="{powerof10_root_url}/clubs/club.aspx?clubid={club_id}">PowerOf10 club page</a>',
         f' and <a href="{runbritain_root_url}/rankings/rankinglist.aspx">runbritain rankings</a>',
         f' {first_year} - {last_year}',
-        f' on {datetime.date.today()}.</p>\n'
+        f' on {datetime.date.today()}.</p>\n',
+        f'<p>Outputting maximum {max_records_all} places overall per event and {max_regords_age_group} per age group\n',
         f'<p><em>See <a href="https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools</a> for source code.</em></p>\n\n']
 
 
@@ -419,21 +449,21 @@ def output_records(output_file, first_year, last_year, club_id):
     
     bulk_part = []
 
-    for (category, _, _) in age_categories:
+    for (category, _, _) in runbritain_categories:
         if category not in record: continue
         anchor = f'age_category_{category}'
         subtitle = f'Age category: {category}'
-        contents_part.append(f'<b><a href="#{anchor}">{subtitle}</a></b><br />\n')
-        bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>')
-        for (event, _, _) in known_events:
+        contents_part.append(f'<br /><b><a href="#{anchor}">{subtitle}</a></b><br />\n')
+        bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+        for (event, _, _, _) in known_events:
             if event not in record[category]: continue
             for gender in ['W', 'M']:
                 record_list = record[category][event].get(gender)
                 if not record_list: continue
                 anchor = f'{event}_{gender}_{category}'.lower()
-                subtitle = f'Records for {event} {gender} {category}'
-                contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em><br />\n')
-                bulk_part.append(f'<h3><a name="{anchor}" />{subtitle}</h3>\n\n')
+                subtitle = f'{event} {gender} {category}'
+                contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
+                bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
                 bulk_part.append('<table border="2">\n')
                 bulk_part.append('<tr>\n')
                 bulk_part.append('<td><b>Rank</b></td><td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
@@ -461,15 +491,17 @@ def output_records(output_file, first_year, last_year, club_id):
                 fd.write(line)
 
 
-def main(club_id=238, output_file='records.htm', first_year=2023, last_year=2023, do_po10=False, do_runbritain=True):
+def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, do_po10=True, do_runbritain=True):
 
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
             if do_po10:
-                process_one_po10_year_gender(club_id, year, gender)
+                for category in powerof10_categories:
+                    process_one_po10_year_gender(club_id, year, gender, category)
             if do_runbritain:
-                for (event, _, _) in [('Mar', True, 3)]: # known_events
-                    for (category, _, _) in age_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
+                for (event, _, _, runbritain) in known_events: # debug [('Mar', True, 3, True)]:
+                    if not runbritain: continue
+                    for (category, _, _) in runbritain_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
                         process_one_runbritain_year_gender(club_id, year, gender, category, event)
 
     output_records(output_file, first_year, last_year, club_id)
