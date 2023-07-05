@@ -457,7 +457,9 @@ def output_records(output_file, first_year, last_year, club_id):
         f'<p>Outputting maximum {max_records_all} places overall per event and {max_regords_age_group} per age group.</p>\n',
         f'<p><em>The idea is to then fill historical gaps or correct any inadmissable performances manually,',
         f' or by adding an additional input file to this automated analysis so that it can be rerun',
-        f' incorporating the information unknown to powerof10 to keep things up to date.</em></p>\n',
+        f' incorporating the information unknown to powerof10 to keep things up to date.',
+        f' While this was done for road running, similarly the T&F records it finds could be merged',
+        f' with the official club T&F records manually or by absorbing them from an input file.</em></p>\n',
         f'<p><em>See <a href="https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools</a> for source code.</em></p>\n\n']
 
 
