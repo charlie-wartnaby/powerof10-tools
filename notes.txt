@@ -144,6 +144,9 @@ https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=Mar&agegroup=
 Can also miss results if omit sex=M/W.
 https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=Mar&agegroup=ALL&sex=M&year=2005&clubid=238
 
+limit option like limits option on po10, get slower times (important for age groups) with limit=n:
+https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=5000&agegroup=ALL&sex=M&year=2019&agemin=45&agemax=49&limit=n&clubid=238
+
 Get handy Javascript source like this (can just eval() in Python?), pagination then done from list:
 
 <script type="text/javascript">

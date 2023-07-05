@@ -1,9 +1,10 @@
 # First written by (c) Charlie Wartnaby 2023
+# See https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools
 
 
 import datetime
 import re
-import requests
+import requests   # Not included by default, use pip install to add
 import sys
 
 
@@ -32,77 +33,88 @@ max_regords_age_group = 3 # Similarly per age group
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
 
-# TODO not very efficient because some events are only for one junior age group
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
 #                event, small-is-good, :-numbers, runbritain
 known_events = [
-                ('1M',      True,        2,        True     ),
-                ('2M',      True,        2,        True     ),
-                ('5K',      True,        2,        True     ),
-                ('parkrun', True,        2,        True     ),
-                ('4M',      True,        2,        True     ),
-                ('5M',      True,        2,        True     ),
-                ('10K',     True,        2,        True     ),
-                ('10M',     True,        2,        True     ),
-                ('HM',      True,        2,        True     ),
-                ('Mar',     True,        3,        True     ),
-                ('50K',     True,        3,        True     ),
-                ('100K',    True,        3,        True     ),
-                ('60' ,     True,        1,        False    ),
-                ('100',     True,        1,        False    ),
-                ('200',     True,        1,        False    ),
-                ('300',     True,        1,        False    ),
-                ('400',     True,        1,        False    ),
-                ('800',     True,        2,        True     ),
-                ('1500',    True,        2,        True     ),
-                ('Mile',    True,        2,        True     ),
-                ('3000',    True,        2,        True     ),
-                ('5000',    True,        2,        True     ),
-                ('10000',   True,        2,        True     ),
-                ('1500SCW', True,        2,        False    ),
-                ('2000SC',  True,        2,        False    ),
-                ('3000SC',  True,        2,        False    ),
-                ('3000SCW', True,        2,        False    ),
-                ('70HU13W', True,        1,        False    ),
-                ('75HU13M', True,        1,        False    ),
-                ('75HU15W', True,        1,        False    ),
-                ('80HU15M', True,        1,        False    ),
-                ('80HU17W', True,        1,        False    ),
-                ('100HW',   True,        1,        False    ),
-                ('110H',    True,        1,        False    ),
-                ('300HW',   True,        1,        False    ),
-                ('400H',    True,        1,        False    ),
-                ('400HW',   True,        1,        False    ),
-                ('HJ',      False,       1,        False    ),
-                ('PV',      False,       1,        False    ),
-                ('LJ',      False,       1,        False    ),
-                ('TJ',      False,       1,        False    ),
-                ('SP2.72K', False,       1,        False    ),
-                ('SP3K',    False,       1,        False    ),
-                ('SP3.25K', False,       1,        False    ),
-                ('SP4K',    False,       1,        False    ),
-                ('SP6K',    False,       1,        False    ),
-                ('SP7.26K', False,       1,        False    ),
-                ('DT0.75K', False,       1,        False    ),
-                ('DT1K',    False,       1,        False    ),
-                ('DT1.25K', False,       1,        False    ),
-                ('DT1.5K',  False,       1,        False    ),
-                ('DT1.75K', False,       1,        False    ),
-                ('DT2K',    False,       1,        False    ),
-                ('HT3K',    False,       1,        False    ),
-                ('HT4K',    False,       1,        False    ),
-                ('HT6K',    False,       1,        False    ),
-                ('HT7.26K', False,       1,        False    ),
-                ('JT400',   False,       1,        False    ),
-                ('JT500',   False,       1,        False    ),
-                ('JT600',   False,       1,        False    ),
-                ('JT700',   False,       1,        False    ),
-                ('JT800',   False,       1,        False    ),
-                ('PenU15W', False,       1,        False    ),
-                ('HepW',    False,       1,        False    ),
-                ('Dec',     False,       1,        False    )
+                ('1M',       True,        2,        True     ),
+                ('2M',       True,        2,        True     ),
+                ('5K',       True,        2,        True     ),
+                ('parkrun',  True,        2,        True     ),
+                ('4M',       True,        2,        True     ),
+                ('5M',       True,        2,        True     ),
+                ('10K',      True,        2,        True     ),
+                ('10M',      True,        2,        True     ),
+                ('HM',       True,        2,        True     ),
+                ('Mar',      True,        3,        True     ),
+                ('50K',      True,        3,        True     ),
+                ('100K',     True,        3,        True     ),
+                ('60' ,      True,        1,        False    ),
+                ('100',      True,        1,        False    ),
+                ('150',      True,        1,        False    ),
+                ('200',      True,        1,        False    ),
+                ('300',      True,        1,        False    ),
+                ('400',      True,        1,        False    ),
+                ('600',      True,        1,        False    ),
+                ('800',      True,        2,        True     ),
+                ('1500',     True,        2,        True     ),
+                ('Mile',     True,        2,        True     ),
+                ('3000',     True,        2,        True     ),
+                ('5000',     True,        2,        True     ),
+                ('10000',    True,        2,        True     ),
+                ('1500SC',   True,        2,        False    ),
+                ('1500SCW',  True,        2,        False    ),
+                ('2000SC',   True,        2,        False    ),
+                ('3000SC',   True,        2,        False    ),
+                ('3000SCW',  True,        2,        False    ),
+                ('70HU13W',  True,        1,        False    ),
+                ('75HU13M',  True,        1,        False    ),
+                ('75HU15W',  True,        1,        False    ),
+                ('80HU15M',  True,        1,        False    ),
+                ('80HU17W',  True,        1,        False    ),
+                ('100HW',    True,        1,        False    ),
+                ('100HU17M', True,        1,        False    ),
+                ('110HU20M', True,        1,        False    ),
+                ('110H',     True,        1,        False    ),
+                ('300HW',    True,        1,        False    ),
+                ('400H',     True,        1,        False    ),
+                ('400HW',    True,        1,        False    ),
+                ('400HU17M', True,        1,        False    ),
+                ('HJ',       False,       1,        False    ),
+                ('PV',       False,       1,        False    ),
+                ('LJ',       False,       1,        False    ),
+                ('TJ',       False,       1,        False    ),
+                ('SP2.72K',  False,       1,        False    ),
+                ('SP3K',     False,       1,        False    ),
+                ('SP3.25K',  False,       1,        False    ),
+                ('SP4K',     False,       1,        False    ),
+                ('SP5K',     False,       1,        False    ),
+                ('SP6K',     False,       1,        False    ),
+                ('SP7.26K',  False,       1,        False    ),
+                ('DT0.75K',  False,       1,        False    ),
+                ('DT1K',     False,       1,        False    ),
+                ('DT1.25K',  False,       1,        False    ),
+                ('DT1.5K',   False,       1,        False    ),
+                ('DT1.75K',  False,       1,        False    ),
+                ('DT2K',     False,       1,        False    ),
+                ('HT3K',     False,       1,        False    ),
+                ('HT4K',     False,       1,        False    ),
+                ('HT5K',     False,       1,        False    ),
+                ('HT6K',     False,       1,        False    ),
+                ('HT7.26K',  False,       1,        False    ),
+                ('JT400',    False,       1,        False    ),
+                ('JT500',    False,       1,        False    ),
+                ('JT600',    False,       1,        False    ),
+                ('JT700',    False,       1,        False    ),
+                ('JT800',    False,       1,        False    ),
+                ('PenU13W',  False,       1,        False    ),
+                ('PenU13M',  False,       1,        False    ),
+                ('PenU15W',  False,       1,        False    ),
+                ('PenU15M',  False,       1,        False    ),
+                ('HepW',     False,       1,        False    ),
+                ('HepU17W',  False,       1,        False    ),
+                ('Dec',      False,       1,        False    )
  ]
 
 known_events_lookup = {}
@@ -358,7 +370,8 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event):
     request_params = {'clubid'       : str(club_id),
                       'sex'          : gender,
                       'year'         : str(year),
-                      'event'        : event}
+                      'event'        : event,
+                      'limit'        : 'n'      } # Otherwise miss slower performances, undocumented option
 
     (min_age, max_age) = runbritain_category_lookup[category]
     if min_age == 0 and max_age == 0:
@@ -440,8 +453,11 @@ def output_records(output_file, first_year, last_year, club_id):
         f'<a href="{powerof10_root_url}/clubs/club.aspx?clubid={club_id}">PowerOf10 club page</a>',
         f' and <a href="{runbritain_root_url}/rankings/rankinglist.aspx">runbritain rankings</a>',
         f' {first_year} - {last_year}',
-        f' on {datetime.date.today()}.</p>\n',
-        f'<p>Outputting maximum {max_records_all} places overall per event and {max_regords_age_group} per age group\n',
+        f' on {datetime.date.today()}.',
+        f'<p>Outputting maximum {max_records_all} places overall per event and {max_regords_age_group} per age group.</p>\n',
+        f'<p><em>The idea is to then fill historical gaps or correct any inadmissable performances manually,',
+        f' or by adding an additional input file to this automated analysis so that it can be rerun',
+        f' incorporating the information unknown to powerof10 to keep things up to date.</em></p>\n',
         f'<p><em>See <a href="https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools</a> for source code.</em></p>\n\n']
 
 
@@ -507,4 +523,5 @@ def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023
     output_records(output_file, first_year, last_year, club_id)
 
 if __name__ == '__main__':
+    # TODO command-line options for club, year range, etc -- using defaults for now
     main()
