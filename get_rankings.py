@@ -36,7 +36,6 @@ max_regords_age_group = 3 # Similarly per age group
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
 
-
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
 #                event, small-is-good, :-numbers, runbritain
@@ -215,6 +214,14 @@ def debold(bold_tagged_string):
 
 def make_numeric_score_from_performance_string(perf):
     # For values like 2:17:23 or 1:28.37 need to split (hours)/mins/sec
+
+    # TODO handle wind-assisted etc from club records
+    for char_idx, c in enumerate(perf):
+        if (not (c >= '0' and c <= '9') and
+                       not c in ['.', ':']):
+            perf = perf[:char_idx]
+            break
+
     total_score = 0.0
     multiplier = 1.0
     sexagesimals = perf.split(':')
@@ -572,7 +579,31 @@ def process_one_excel_worksheet(worksheet):
             if reqd_heading == 'name': reqd_heading = 'date [or record holder]'
             print(f'Required heading not found (case insensitive), skipping sheet: {reqd_heading}')
 
-    pass
+    for row_idx, row in df.iterrows():
+        perf = row['performance']
+        if perf is None: continue
+        date = row['date']
+        if date is None: continue
+        name = row['name']
+        if name is None: continue
+        event = row['po10 event']
+        if event is None: continue
+        gender = row['gender']
+        if gender is None: continue
+        category = row['age group']
+        if category is None: continue
+        perf = str(perf).strip()
+        if not perf: continue
+        date = str(date).strip()
+        if not date: continue
+        name = name.strip()
+        if not name: continue
+        event = str(event).upper().strip()
+        if not event: continue
+        gender = gender.upper().strip()
+        if gender not in ['M', 'W']: continue
+        process_performance(event, gender, category, perf, name, '',
+                            date, '', '', 'worksheet')
 
 def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, 
          do_po10=False, do_runbritain=False, input_files=['prev_known_and_20022_club_records.xlsx']):
