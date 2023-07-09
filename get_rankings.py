@@ -12,10 +12,11 @@ import sys
 
 
 class Performance():
-    def __init__(self, event, score, decimal_places, athlete_name, athlete_url='', date='',
+    def __init__(self, event, score, original_special, decimal_places, athlete_name, athlete_url='', date='',
                        fixture_name='', fixture_url='', source=''):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
+        self.original_special = original_special # for wind-assisted detail etc from club records
         self.decimal_places = decimal_places # so we can use original precision which may imply electronic timing etc
         self.athlete_name = athlete_name
         self.athlete_url = athlete_url
@@ -118,6 +119,9 @@ known_events = [
                 ('PenU13M',    False,       1,        False    ),
                 ('PenU15W',    False,       1,        False    ),
                 ('PenU15M',    False,       1,        False    ),
+                ('PenW',       False,       1,        False    ),
+                ('PenM35',     False,       1,        False    ),
+                ('PenM40',     False,       1,        False    ),
                 ('HepW',       False,       1,        False    ),
                 ('HepU17W',    False,       1,        False    ),
                 ('Dec',        False,       1,        False    )
@@ -215,10 +219,16 @@ def debold(bold_tagged_string):
 def make_numeric_score_from_performance_string(perf):
     # For values like 2:17:23 or 1:28.37 need to split (hours)/mins/sec
 
+    original_special = ''
+
+    perf = perf.replace('pts', '') # for pentathlon/decathlon etc
+    perf = perf.strip()
+
     # TODO handle wind-assisted etc from club records
     for char_idx, c in enumerate(perf):
         if (not (c >= '0' and c <= '9') and
                        not c in ['.', ':']):
+            original_special = perf # preserve original detail
             perf = perf[:char_idx]
             break
 
@@ -232,7 +242,7 @@ def make_numeric_score_from_performance_string(perf):
     decimal_split = perf.split('.')
     decimal_places = 0 if len(decimal_split) < 2 else len(decimal_split[1])
 
-    return total_score, decimal_places
+    return total_score, decimal_places, original_special
 
 
 def process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source):
@@ -250,7 +260,7 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
         return
     smaller_score_better = known_events_lookup[event][0]
 
-    score, original_dp = make_numeric_score_from_performance_string(perf)
+    score, original_dp, original_special = make_numeric_score_from_performance_string(perf)
 
     max_records = max_records_all if category == 'ALL' else max_regords_age_group
 
@@ -271,7 +281,7 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
         # TODO getting equal scores in resuls currently...
 
     if add_record:
-        perf = Performance(event, score, original_dp, name, url, 
+        perf = Performance(event, score, original_special, original_dp, name, url, 
                            date, fixture_name, fixture_url, source)
         record_list.append(perf)
         record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
@@ -501,7 +511,10 @@ def output_records(output_file, first_year, last_year, club_id):
                 bulk_part.append('<td><b>Rank</b></td><td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
                 bulk_part.append('</tr>\n')
                 for idx, perf in enumerate(record_list):
-                    score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
+                    if perf.original_special:
+                        score_str = perf.original_special
+                    else:
+                        score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
                     bulk_part.append('<tr>\n')
                     bulk_part.append(f'  <td>{idx+1}</td>\n')
                     bulk_part.append(f'  <td>{score_str}</td>\n')
@@ -534,11 +547,11 @@ def process_one_input_file(input_file):
     
     workbook = openpyxl.load_workbook(filename=input_file)
     for worksheet in workbook.worksheets:
-        process_one_excel_worksheet(worksheet)
+        process_one_excel_worksheet(input_file, worksheet)
 
     pass
 
-def process_one_excel_worksheet(worksheet):
+def process_one_excel_worksheet(input_file, worksheet):
 
     print(f'Processing worksheet: {worksheet.title}')
     df = pandas.DataFrame(worksheet.values)
@@ -598,12 +611,12 @@ def process_one_excel_worksheet(worksheet):
         if not date: continue
         name = name.strip()
         if not name: continue
-        event = str(event).upper().strip()
+        event = str(event).strip()
         if not event: continue
         gender = gender.upper().strip()
         if gender not in ['M', 'W']: continue
         process_performance(event, gender, category, perf, name, '',
-                            date, '', '', 'worksheet')
+                            date, '', '', input_file + ':' + worksheet.title)
 
 def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, 
          do_po10=False, do_runbritain=False, input_files=['prev_known_and_20022_club_records.xlsx']):
