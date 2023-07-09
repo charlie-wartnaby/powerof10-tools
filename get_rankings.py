@@ -3,6 +3,9 @@
 
 
 import datetime
+import openpyxl
+import os
+import pandas
 import re
 import requests   # Not included by default, use pip install to add
 import sys
@@ -513,7 +516,66 @@ def output_records(output_file, first_year, last_year, club_id):
                 fd.write(line)
 
 
-def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, do_po10=True, do_runbritain=True):
+def process_one_input_file(input_file):
+
+    print(f'Processing file: {input_file}')
+
+    _, file_extension = os.path.splitext(input_file)
+    if file_extension.lower() != '.xlsx':
+        print(f'Warning: ignoring input file, can only handle .xlsx currently: {input_file}')
+        return
+    
+    workbook = openpyxl.load_workbook(filename=input_file)
+    for worksheet in workbook.worksheets:
+        process_one_excel_worksheet(worksheet)
+
+    pass
+
+def process_one_excel_worksheet(worksheet):
+
+    print(f'Processing worksheet: {worksheet.title}')
+    df = pandas.DataFrame(worksheet.values)
+
+    # We get integers as headings instead of the intended column headings, so find those
+    headings_found = False
+    for row_idx, row in df.iterrows():
+        for col_idx, cell_value in enumerate(row.values):
+            if cell_value is None: continue
+            if cell_value.lower().strip() == 'performance':
+                headings_found = True
+                break
+        if headings_found: break
+
+    if not headings_found:
+        print(f'Warning: could not find "Performance" heading, skipping sheet')
+        return
+    
+    df.columns = df.iloc[row_idx]
+    df.drop(df.index[0:row_idx + 1], inplace=True)
+    
+    # Convert all headings to lower case and strip whitespace
+    renames = {}
+    for col_name in df.columns:
+        if not col_name : continue
+        new_col_name = col_name.lower().strip()
+        renames[col_name] = new_col_name
+    df.rename(columns=renames, inplace=True)
+    
+    # C&C club records have some column headings that might not suit us for other
+    # input lists
+    df.rename(columns={'year' : 'date', 'record holder' : 'name'}, inplace=True)
+
+    col_name_list = df.columns.tolist()
+    for reqd_heading in ['performance', 'date', 'name', 'po10 event', 'gender', 'age group']:
+        if reqd_heading not in col_name_list:
+            if reqd_heading == 'date': reqd_heading = 'date [or year]'
+            if reqd_heading == 'name': reqd_heading = 'date [or record holder]'
+            print(f'Required heading not found (case insensitive), skipping sheet: {reqd_heading}')
+
+    pass
+
+def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, 
+         do_po10=False, do_runbritain=False, input_files=['prev_known_and_20022_club_records.xlsx']):
 
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
@@ -525,6 +587,9 @@ def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023
                     if not runbritain: continue
                     for (category, _, _) in runbritain_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
                         process_one_runbritain_year_gender(club_id, year, gender, category, event)
+
+    for input_file in input_files:
+        process_one_input_file(input_file)
 
     output_records(output_file, first_year, last_year, club_id)
 
