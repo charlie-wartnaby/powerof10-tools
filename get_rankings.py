@@ -118,11 +118,14 @@ known_events = [
                 ('JT800',      False,       1,        False    ),
                 ('JT800PRE86', False,       1,        False    ),
                 ('Minithon',   False,       1,        False    ), # from C&C club records but not in Po10
+                ('Oct',        False,       1,        False    ), # from C&C club records but not in Po10
                 ('PenU13W',    False,       1,        False    ),
                 ('PenU13M',    False,       1,        False    ),
                 ('PenU15W',    False,       1,        False    ),
                 ('PenU15M',    False,       1,        False    ),
                 ('PenU17W',    False,       1,        False    ),
+                ('PenU17M',    False,       1,        False    ),
+                ('PenU20M',    False,       1,        False    ),
                 ('PenW',       False,       1,        False    ),
                 ('PenM35',     False,       1,        False    ),
                 ('PenM40',     False,       1,        False    ),
