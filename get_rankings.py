@@ -70,13 +70,19 @@ known_events = [
                 ('1500SC',     True,        2,        False    ),
                 ('1500SCW',    True,        2,        False    ),
                 ('2000SC',     True,        2,        False    ),
+                ('2000SCW',    True,        2,        False    ),
                 ('3000SC',     True,        2,        False    ),
                 ('3000SCW',    True,        2,        False    ),
+                ('MileW',      True,        2,        False    ),
+                ('1500W',      True,        2,        False    ),
+                ('2000W',      True,        2,        False    ),
+                ('3000W',      True,        2,        False    ),
                 ('70HU13W',    True,        1,        False    ),
                 ('75HU13M',    True,        1,        False    ),
                 ('75HU15W',    True,        1,        False    ),
                 ('80HU15M',    True,        1,        False    ),
                 ('80HU17W',    True,        1,        False    ),
+                ('80HW',       True,        1,        False    ),
                 ('100HW',      True,        1,        False    ),
                 ('100HU17M',   True,        1,        False    ),
                 ('110HU20M',   True,        1,        False    ),
@@ -129,6 +135,7 @@ known_events = [
                 ('PenW',       False,       1,        False    ),
                 ('PenM35',     False,       1,        False    ),
                 ('PenM40',     False,       1,        False    ),
+                ('PenWtW60',   False,       1,        False    ),
                 ('HepW',       False,       1,        False    ),
                 ('HepU17W',    False,       1,        False    ),
                 ('Dec',        False,       1,        False    )
@@ -632,7 +639,7 @@ def process_one_excel_worksheet(input_file, worksheet):
                             date, '', '', input_file + ':' + worksheet.title)
 
 def main(club_id=238, output_file='records.htm', first_year=2022, last_year=2022, 
-         do_po10=True, do_runbritain=False, input_files=['prev_known.xlsx']):
+         do_po10=False, do_runbritain=False, input_files=['prev_known.xlsx']):
 
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
