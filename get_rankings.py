@@ -54,6 +54,7 @@ known_events = [
                 ('50K',        True,        3,        True     ),
                 ('100K',       True,        3,        True     ),
                 ('60' ,        True,        1,        False    ),
+                ('80' ,        True,        1,        False    ),
                 ('100',        True,        1,        False    ),
                 ('150',        True,        1,        False    ),
                 ('200',        True,        1,        False    ),
@@ -111,14 +112,17 @@ known_events = [
                 ('JT400',      False,       1,        False    ),
                 ('JT500',      False,       1,        False    ),
                 ('JT600',      False,       1,        False    ),
+                ('JT600PRE86', False,       1,        False    ),
                 ('JT600PRE99', False,       1,        False    ),
                 ('JT700',      False,       1,        False    ),
                 ('JT800',      False,       1,        False    ),
                 ('JT800PRE86', False,       1,        False    ),
+                ('Minithon',   False,       1,        False    ), # from C&C club records but not in Po10
                 ('PenU13W',    False,       1,        False    ),
                 ('PenU13M',    False,       1,        False    ),
                 ('PenU15W',    False,       1,        False    ),
                 ('PenU15M',    False,       1,        False    ),
+                ('PenU17W',    False,       1,        False    ),
                 ('PenW',       False,       1,        False    ),
                 ('PenM35',     False,       1,        False    ),
                 ('PenM40',     False,       1,        False    ),
@@ -518,9 +522,15 @@ def output_records(output_file, first_year, last_year, club_id):
                     bulk_part.append('<tr>\n')
                     bulk_part.append(f'  <td>{idx+1}</td>\n')
                     bulk_part.append(f'  <td>{score_str}</td>\n')
-                    bulk_part.append(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
+                    if perf.athlete_url:
+                        bulk_part.append(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
+                    else:
+                        bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
                     bulk_part.append(f'  <td>{perf.date}</td>\n')
-                    bulk_part.append(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
+                    if perf.fixture_url:
+                        bulk_part.append(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
+                    else:
+                        bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
                     bulk_part.append(f'  <td>{perf.source}</td></n>')
                     bulk_part.append('</tr>\n')
                 bulk_part.append('</table>\n\n')
@@ -618,8 +628,8 @@ def process_one_excel_worksheet(input_file, worksheet):
         process_performance(event, gender, category, perf, name, '',
                             date, '', '', input_file + ':' + worksheet.title)
 
-def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, 
-         do_po10=False, do_runbritain=False, input_files=['prev_known_and_20022_club_records.xlsx']):
+def main(club_id=238, output_file='records.htm', first_year=2022, last_year=2022, 
+         do_po10=True, do_runbritain=False, input_files=['prev_known.xlsx']):
 
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
