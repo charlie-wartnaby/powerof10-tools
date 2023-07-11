@@ -698,7 +698,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         performance_count['File(s)'] += 1
 
 def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
-         do_po10=False, do_runbritain=False, input_files=['CnC_known_records.xlsx']):
+         do_po10=True, do_runbritain=True, input_files=['CnC_known_records.xlsx']):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
