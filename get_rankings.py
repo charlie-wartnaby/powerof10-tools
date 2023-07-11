@@ -305,12 +305,28 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
         perf = Performance(event, score, original_special, original_dp, name, url, 
                            date, fixture_name, fixture_url, source)
         same_score_seen = False
-        for existing_perf in record_list:
-            if existing_perf[0].score == perf.score:
-                # Same record with different source, or a tie with new person
-                existing_perf.append(perf)
+        tie_same_name_managed = False
+        for existing_perf_list in record_list:
+            if existing_perf_list[0].score == perf.score:
                 same_score_seen = True
+                # Same record with different source, or a tie with new person
+                # Prefer Po10 over Runbritain, and don't include both as share source data
+                for perf_idx, existing_perf in enumerate(existing_perf_list):
+                    if existing_perf.athlete_name == perf.athlete_name:
+                        if existing_perf.source.startswith('Po10') and perf.source.startswith('Runbritain'):
+                            # Don't add Runbritain score if already there from Po10
+                            tie_same_name_managed = True
+                            break
+                        elif  existing_perf.source.startswith('Runbritain') and perf.source.startswith('Po10'):
+                            # Replace existing Runbritain one with Po10
+                            existing_perf_list[perf_idx] = perf
+                            tie_same_name_managed = True
+                            break
+                        else:
+                            # Keep checking remaining performances for same name and score
+                            pass
                 break
+        if tie_same_name_managed: return # Nothing to do as overall record list length unchanged
         if not same_score_seen:
             record_list.append([perf])
         record_list.sort(key=lambda x: x[0].score, reverse=not smaller_score_better)
