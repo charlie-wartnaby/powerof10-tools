@@ -292,31 +292,46 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
         # We don't have enough records for this event yet so add
         add_record = True
     else:
-        prev_worst_score = record_list[-1].score
-        # For a tie, not adding new record as the earlier one should
-        # take precedence, but TODO not considering fixture date yet,
-        # only depending on processing rankings in year order
+        prev_worst_score = record_list[-1][0].score
+        # For a tie, now adding new record, as club records sometimes showed two
+        # record-holders; and a chance to line up data from different sources in
+        # the output to show agreement where they match
         if smaller_score_better:
-            if score < prev_worst_score: add_record = True
+            if score <= prev_worst_score: add_record = True
         else:
-            if score > prev_worst_score: add_record = True
-        # TODO getting equal scores in resuls currently...
+            if score >= prev_worst_score: add_record = True
 
     if add_record:
         perf = Performance(event, score, original_special, original_dp, name, url, 
                            date, fixture_name, fixture_url, source)
-        record_list.append(perf)
-        record_list.sort(key=lambda x: x.score, reverse=not smaller_score_better)
+        same_score_seen = False
+        for existing_perf in record_list:
+            if existing_perf[0].score == perf.score:
+                # Same record with different source, or a tie with new person
+                existing_perf.append(perf)
+                same_score_seen = True
+                break
+        if not same_score_seen:
+            record_list.append([perf])
+        record_list.sort(key=lambda x: x[0].score, reverse=not smaller_score_better)
         athlete_names = {}
-        idx = 0
-        while idx < len(record_list):
-            existing_record_name = record_list[idx].athlete_name
-            if existing_record_name in athlete_names:
-                # Avoid same person appearing multiple times
-                del record_list[idx]
+        rec_idx = 0
+        while rec_idx < len(record_list):
+            perf_idx = 0
+            while perf_idx < len(record_list[rec_idx]):
+                existing_record_name = record_list[rec_idx][perf_idx].athlete_name
+                if existing_record_name in athlete_names:
+                    # Avoid same person appearing multiple times, allowing for ties
+                    del record_list[rec_idx][perf_idx]
+                    break
+                perf_idx += 1
             else:
                 athlete_names[existing_record_name] = True
-            idx += 1
+            if not record_list[rec_idx]:
+                # Usual case after a deletion: no tie, that score was for only one athlete
+                del record_list[rec_idx]
+            else:
+                rec_idx += 1
         # Keep list at max required length 
         del record_list[max_records :]
 
@@ -530,25 +545,27 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 bulk_part.append('<tr>\n')
                 bulk_part.append('<td><b>Rank</b></td><td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
                 bulk_part.append('</tr>\n')
-                for idx, perf in enumerate(record_list):
-                    if perf.original_special:
-                        score_str = perf.original_special
-                    else:
-                        score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
-                    bulk_part.append('<tr>\n')
-                    bulk_part.append(f'  <td>{idx+1}</td>\n')
-                    bulk_part.append(f'  <td>{score_str}</td>\n')
-                    if perf.athlete_url:
-                        bulk_part.append(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
-                    else:
-                        bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
-                    bulk_part.append(f'  <td>{perf.date}</td>\n')
-                    if perf.fixture_url:
-                        bulk_part.append(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
-                    else:
-                        bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
-                    bulk_part.append(f'  <td>{perf.source}</td></n>')
-                    bulk_part.append('</tr>\n')
+                for idx, perf_list in enumerate(record_list):
+                    for perf_idx, perf in enumerate(perf_list): # May be ties with same score or different sources
+                        if perf.original_special:
+                            score_str = perf.original_special
+                        else:
+                            score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
+                        bulk_part.append('<tr>\n')
+                        rank_str = f'{idx+1}' if perf_idx == 0 else ''
+                        bulk_part.append(f'  <td>{rank_str}</td>\n')
+                        bulk_part.append(f'  <td>{score_str}</td>\n')
+                        if perf.athlete_url:
+                            bulk_part.append(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
+                        else:
+                            bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
+                        bulk_part.append(f'  <td>{perf.date}</td>\n')
+                        if perf.fixture_url:
+                            bulk_part.append(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
+                        else:
+                            bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
+                        bulk_part.append(f'  <td>{perf.source}</td></n>')
+                        bulk_part.append('</tr>\n')
                 bulk_part.append('</table>\n\n')
 
     contents_part.append('\n\n')
@@ -644,7 +661,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         process_performance(event, gender, category, perf, name, '',
                             date, '', '', input_file + ':' + worksheet.title)
 
-def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
+def main(club_id=238, output_file='records.htm', first_year=2019, last_year=2019, 
          do_po10=True, do_runbritain=True, input_files=['prev_known.xlsx']):
 
     for year in range(first_year, last_year + 1):
