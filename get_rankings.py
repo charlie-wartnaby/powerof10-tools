@@ -677,8 +677,8 @@ def process_one_excel_worksheet(input_file, worksheet):
         process_performance(event, gender, category, perf, name, '',
                             date, '', '', input_file + ':' + worksheet.title)
 
-def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, 
-         do_po10=True, do_runbritain=True, input_files=['prev_known.xlsx']):
+def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
+         do_po10=True, do_runbritain=True, input_files=['CnC_known_records.xlsx']):
 
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
