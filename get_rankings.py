@@ -325,10 +325,13 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
                         else:
                             # Keep checking remaining performances for same name and score
                             pass
+                if not tie_same_name_managed:
+                    # Could be manual record to put alongside Po10 say
+                    existing_perf_list.append(perf)
                 break
-        if tie_same_name_managed: return # Nothing to do as overall record list length unchanged
-        if not same_score_seen:
-            record_list.append([perf])
+        if same_score_seen: return # Nothing to do as overall record list length unchanged, added to existing slot if anything
+
+        record_list.append([perf])
         record_list.sort(key=lambda x: x[0].score, reverse=not smaller_score_better)
         athlete_names = {}
         rec_idx = 0
@@ -680,6 +683,10 @@ def process_one_excel_worksheet(input_file, worksheet):
 def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
          do_po10=True, do_runbritain=True, input_files=['CnC_known_records.xlsx']):
 
+    # Input files first so known club records appear above database results for same performance
+    for input_file in input_files:
+        process_one_input_file(input_file)
+
     for year in range(first_year, last_year + 1):
         for gender in ['W', 'M']:
             if do_po10:
@@ -690,9 +697,6 @@ def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023
                     if not runbritain: continue
                     for (category, _, _) in runbritain_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
                         process_one_runbritain_year_gender(club_id, year, gender, category, event)
-
-    for input_file in input_files:
-        process_one_input_file(input_file)
 
     output_records(output_file, first_year, last_year, club_id, do_po10, do_runbritain, input_files)
 
