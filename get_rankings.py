@@ -555,12 +555,18 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     
     bulk_part = []
 
+    first_content = True
     for (category, _, _) in runbritain_categories:
         if category not in record: continue
         for gender in ['W', 'M']:
             anchor = f'category_{gender}_{category}'
             subtitle = f'Category: {gender} {category}'
-            contents_part.append(f'<br /><b><a href="#{anchor}">{subtitle}</a></b><br />\n')
+            if first_content:
+                # Avoid big gap after Contents heading
+                first_content = False
+            else:
+                contents_part.append('<br />\n')
+            contents_part.append(f'<b><a href="#{anchor}">{subtitle}</a></b><br />\n')
             bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
             for (event, _, _, _) in known_events:
                 if event not in record[category]: continue
@@ -593,7 +599,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                             bulk_part.append(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
                         else:
                             bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
-                        bulk_part.append(f'  <td>{perf.source}</td></n>')
+                        bulk_part.append(f'  <td>{perf.source}</td>\n')
                         bulk_part.append('</tr>\n')
                 bulk_part.append('</table>\n\n')
 
@@ -692,7 +698,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         performance_count['File(s)'] += 1
 
 def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
-         do_po10=True, do_runbritain=True, input_files=['CnC_known_records.xlsx']):
+         do_po10=False, do_runbritain=False, input_files=['CnC_known_records.xlsx']):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
