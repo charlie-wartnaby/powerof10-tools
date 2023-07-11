@@ -37,6 +37,10 @@ max_regords_age_group = 3 # Similarly per age group
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
 
+performance_count = {'Po10'       : 0,
+                     'Runbritain' : 0,
+                     'File(s)'    : 0}
+
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
 #                event, small-is-good, :-numbers, runbritain
@@ -394,6 +398,7 @@ def process_one_rankings_table(rows, gender, category, source):
                     fixture_name = anchor[0].inner_text
                     fixture_url = powerof10_root_url + anchor[0].attribs["href"]
                     process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
+                    performance_count['Po10'] += 1
         else:
             # unknown state
             state = "seeking_title"
@@ -496,6 +501,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event):
             fixture_name = anchor[0].inner_text
             fixture_url = runbritain_root_url + anchor[0].attribs["href"]
             process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
+            performance_count['Runbritain'] += 1
 
 def format_sexagesimal(value, num_numbers, decimal_places):
     """Format as HH:MM:SS (3 numbers), SS.sss (1 number) etc"""
@@ -539,6 +545,10 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
         header_part.append(f'<li>Local file: {input_file}</li>\n')
     header_part.append('</ul>\n\n')
     header_part.append(f'<p>Outputting maximum {max_records_all} places overall per event and {max_regords_age_group} per age group.</p>\n')
+    header_part.append(f'<p>Count of performances processed...')
+    for type in performance_count.keys():
+        header_part.append(f' {type}: {performance_count[type]}')
+    header_part.append(f'</p>\n')
     header_part.append(f'<p><em>See <a href="https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools</a> for source code.</em></p>\n\n')
 
     contents_part = ['<h2>Contents</h2>\n\n']
@@ -679,6 +689,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         if gender not in ['M', 'W']: continue
         process_performance(event, gender, category, perf, name, '',
                             date, '', '', input_file + ':' + worksheet.title)
+        performance_count['File(s)'] += 1
 
 def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
          do_po10=True, do_runbritain=True, input_files=['CnC_known_records.xlsx']):
