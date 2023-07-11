@@ -544,13 +544,13 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
 
     for (category, _, _) in runbritain_categories:
         if category not in record: continue
-        anchor = f'age_category_{category}'
-        subtitle = f'Age category: {category}'
-        contents_part.append(f'<br /><b><a href="#{anchor}">{subtitle}</a></b><br />\n')
-        bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
-        for (event, _, _, _) in known_events:
-            if event not in record[category]: continue
-            for gender in ['W', 'M']:
+        for gender in ['W', 'M']:
+            anchor = f'category_{gender}_{category}'
+            subtitle = f'Category: {gender} {category}'
+            contents_part.append(f'<br /><b><a href="#{anchor}">{subtitle}</a></b><br />\n')
+            bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+            for (event, _, _, _) in known_events:
+                if event not in record[category]: continue
                 record_list = record[category][event].get(gender)
                 if not record_list: continue
                 anchor = f'{event}_{gender}_{category}'.lower()
@@ -677,7 +677,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         process_performance(event, gender, category, perf, name, '',
                             date, '', '', input_file + ':' + worksheet.title)
 
-def main(club_id=238, output_file='records.htm', first_year=2019, last_year=2019, 
+def main(club_id=238, output_file='records.htm', first_year=2003, last_year=2023, 
          do_po10=True, do_runbritain=True, input_files=['prev_known.xlsx']):
 
     for year in range(first_year, last_year + 1):
