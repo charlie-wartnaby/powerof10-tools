@@ -8,9 +8,9 @@ https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=10000&sex=M&y
 
 Helen Grant 10000m 2015 V50 in official club records but only runbritain shown in output
 https://www.thepowerof10.info/athletes/profile.aspx?athleteid=357748
-But Po10 lists as C&C/Eastern Masters, so maybe didn't count as first claim.
+But Po10 lists as C&C/Eastern Masters, so maybe didn't count as first claim?
 https://www.thepowerof10.info/results/results.aspx?meetingid=130496&event=10000&venue=Birmingham&date=20-Sep-15
-
+Solved: time slower in hundredths on C&C record sheet, so Runbritain result "won", not found as duplicate with identical time
 
 Add racewalks and other events runbritain does support though not shown in its dropdown options,
 e.g. 3000W works:
@@ -22,3 +22,5 @@ o Wind-assisted example?
 o 1st/2nd claim example?
 
 Cache performances found with key of URL used to get them? And save to database file to avoid repeating whole trawl.
+
+Add venue column for hand-entered records
