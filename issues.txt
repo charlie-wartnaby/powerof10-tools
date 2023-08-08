@@ -18,9 +18,15 @@ https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=3000W&sex=W&y
 
 Find examples where club record not aligned with Po10/RB extraction
 o Age group boundary e.g. Adelaide TJ
+ - TJ W U15 Po10 has 10.91m for AO, not in club records
+ - TJ W U17 CnC has 12.30m for AO from 2017, but Po10 has this as U20: https://thepowerof10.info/results/results.aspx?meetingid=189039&event=TJ&venue=Birmingham&date=7-Jul-17
 o Wind-assisted example?
 o 1st/2nd claim example?
 
 Cache performances found with key of URL used to get them? And save to database file to avoid repeating whole trawl.
 
 Add venue column for hand-entered records
+
+Warn if any spreadsheet rows skipped due to parsing problems
+
+AO appears twice with different heights in HJ W ALL
