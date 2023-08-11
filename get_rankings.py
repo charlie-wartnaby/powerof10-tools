@@ -2,6 +2,7 @@
 # See https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools
 
 
+import argparse
 import datetime
 import openpyxl
 import os
@@ -697,26 +698,48 @@ def process_one_excel_worksheet(input_file, worksheet):
                             date, '', '', input_file + ':' + worksheet.title)
         performance_count['File(s)'] += 1
 
-def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
-         do_po10=True, do_runbritain=True, input_files=['CnC_known_records.xlsx']):
+def main(club_id=238, output_file='records.htm', first_year=2015, last_year=2015, 
+         do_po10=False, do_runbritain=True, input_files=['CnC_known_records_test.xlsx'],
+         cache_file='cache.pkl'):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
         process_one_input_file(input_file)
 
     for year in range(first_year, last_year + 1):
-        for gender in ['W', 'M']:
+        for gender in ['W']:
             if do_po10:
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category)
             if do_runbritain:
-                for (event, _, _, runbritain) in known_events: # debug [('Mar', True, 3, True)]:
+                for (event, _, _, runbritain) in [('10000', True, 2, True)]: #, ('3000', True, 2, True)]: # known_events: # debug [('Mar', True, 3, True)]:
                     if not runbritain: continue
-                    for (category, _, _) in runbritain_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
+                    for (category, _, _) in [('V50', 50, 54)]: # runbritain_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
                         process_one_runbritain_year_gender(club_id, year, gender, category, event)
 
     output_records(output_file, first_year, last_year, club_id, do_po10, do_runbritain, input_files)
 
 if __name__ == '__main__':
-    # TODO command-line options for club, year range, etc -- using defaults for now
-    main()
+    # Main entry point
+
+    parser = argparse.ArgumentParser(description='Build club records tables from thepowerof10, runbritain and Excel files')
+ 
+    yes_no_choices = ['y', 'Y', 'n', 'N']
+
+    parser.add_argument(dest='excel_file', nargs ='*') # .xlsx records files
+    parser.add_argument('--po10', dest='do_po10', choices=yes_no_choices, default='y')
+    parser.add_argument('--runbritain', dest='do_runbritain', choices=yes_no_choices, default='y')
+    parser.add_argument('--firstyear', dest='first_year', type=int, default=2006)
+    parser.add_argument('--lastyear', dest='last_year', type=int, default=2023)
+    parser.add_argument('--clubid', dest='club_id', default=238, type=int)
+    parser.add_argument('--output', dest='output_filename', default='records.htm')
+    parser.add_argument('--cache', dest='cache_filename', default='cache.pkl')
+
+    args = parser.parse_args()
+
+    do_po10 = args.do_po10.lower().startswith('y')
+    do_runbritain = args.do_runbritain.lower().startswith('y')
+
+    main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
+         last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
+         input_files=args.excel_file, cache_file=args.cache_filename)
