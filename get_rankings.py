@@ -306,7 +306,7 @@ def process_performance(perf):
         return
     smaller_score_better = known_events_lookup[perf.event][0]
 
-    max_records = max_records_all if category == 'ALL' else max_regords_age_group
+    max_records = max_records_all if perf.category == 'ALL' else max_regords_age_group
 
     record_list = record[perf.category][perf.event][perf.gender]
     add_record = False
