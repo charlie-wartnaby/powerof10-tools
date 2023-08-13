@@ -25,6 +25,4 @@ o 1st/2nd claim example?
 
 Add venue column for hand-entered records
 
-Warn if any spreadsheet rows skipped due to parsing problems
-
 AO appears twice with different heights in HJ W ALL

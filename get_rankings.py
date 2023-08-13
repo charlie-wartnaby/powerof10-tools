@@ -219,7 +219,7 @@ def get_html_content(html_text, html_tag):
         close_match = close_regex.search(html_text, pos=offset)
         if close_match is None:
             if ((open_match is not None) and (nesting_depth == 0)) or (nesting_depth > 0):
-                print(f'Warning: no match for closing tag "{html_tag}"')
+                print(f'WARNING: no match for closing tag "{html_tag}"')
             break
         if open_match is not None and (open_match.start() < close_match.start()):
             if inside_tag_block:
@@ -297,7 +297,7 @@ def process_performance(perf):
         record[perf.category][perf.event][perf.gender] = []
 
     if perf.event not in known_events_lookup:
-        print(f'Warning: unknown event {perf.event}, ignoring')
+        print(f'WARNING: unknown event {perf.event}, ignoring')
         return
     smaller_score_better = known_events_lookup[perf.event][0]
 
@@ -666,7 +666,7 @@ def process_one_input_file(input_file):
 
     _, file_extension = os.path.splitext(input_file)
     if file_extension.lower() != '.xlsx':
-        print(f'Warning: ignoring input file, can only handle .xlsx currently: {input_file}')
+        print(f'WARNING: ignoring input file, can only handle .xlsx currently: {input_file}')
         return
     
     workbook = openpyxl.load_workbook(filename=input_file)
@@ -691,7 +691,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         if headings_found: break
 
     if not headings_found:
-        print(f'Warning: could not find "Performance" heading, skipping sheet')
+        print(f'WARNING: could not find "Performance" heading, skipping sheet')
         return
     
     df.columns = df.iloc[row_idx]
@@ -717,35 +717,66 @@ def process_one_excel_worksheet(input_file, worksheet):
             print(f'Required heading not found (case insensitive), skipping sheet: {reqd_heading}')
 
     for row_idx, row in df.iterrows():
+        # Can get None obj references as well as empty strings
+        excel_row_number = row_idx + 1
         perf = row['performance']
-        if perf is None: continue
-        date = row['date']
-        if date is None: continue
         name = row['name']
-        if name is None: continue
+        if not perf and not name:
+            # Assume blank row, ignore quietly
+            continue
+        perf = str(perf).strip() if perf else ''
+        name = name.strip() if name else ''
+        if not name and not perf:
+            # Assume blank row, ignore quietly
+            continue
+        if not perf:
+            print(f'WARNING: performance missing at row {excel_row_number}')
+            continue
+        if name is None:
+            print(f'WARNING: name missing at row {excel_row_number}')
+            continue
+        date = row['date']
+        if date is None:
+            print(f'WARNING: date missing at row {excel_row_number}')
+            continue
         event = row['po10 event']
-        if event is None: continue
+        if event is None:
+            print(f'WARNING: Po10 event code missing at row {excel_row_number}')
+            continue
         gender = row['gender']
-        if gender is None: continue
+        if gender is None:
+            print(f'WARNING: gender missing at row {excel_row_number}')
+            continue
         category = row['age group']
-        if category is None: continue
+        if category is None:
+            print(f'WARNING: age category missing at row {excel_row_number}')
+            continue
         perf = str(perf).strip()
-        if not perf: continue
+        if not perf:
+            print(f'WARNING: performance missing at row {excel_row_number}')
+            continue
         date = str(date).strip()
-        if not date: continue
-        name = name.strip()
-        if not name: continue
+        if not date:
+            print(f'WARNING: date missing at row {excel_row_number}')
+            continue
+        if not name:
+            print(f'WARNING: name missing at row {excel_row_number}')
+            continue
         event = str(event).strip()
-        if not event: continue
+        if not event:
+            print(f'WARNING: event missing at row {excel_row_number}')
+            continue
         gender = gender.upper().strip()
-        if gender not in ['M', 'W']: continue
+        if gender not in ['M', 'W']:
+            print(f'WARNING: gender not W or M at row {excel_row_number}')
+            continue
         perf = construct_performance(event, gender, category, perf, name, '',
                             date, '', '', input_file + ':' + worksheet.title)
         process_performance(perf)
         performance_count['File(s)'] += 1
 
-def main(club_id=238, output_file='records.htm', first_year=2015, last_year=2015, 
-         do_po10=False, do_runbritain=True, input_files=['CnC_known_records_test.xlsx'],
+def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
+         do_po10=False, do_runbritain=True, input_files=[],
          cache_file='cache.pkl'):
 
     # Input files first so known club records appear above database results for same performance
@@ -790,7 +821,7 @@ if __name__ == '__main__':
     yes_no_choices = ['y', 'Y', 'n', 'N']
 
     parser.add_argument(dest='excel_file', nargs ='*') # .xlsx records files
-    parser.add_argument('--po10', dest='do_po10', choices=yes_no_choices, default='y')
+    parser.add_argument('--powerof10', dest='do_po10', choices=yes_no_choices, default='y')
     parser.add_argument('--runbritain', dest='do_runbritain', choices=yes_no_choices, default='y')
     parser.add_argument('--firstyear', dest='first_year', type=int, default=2006)
     parser.add_argument('--lastyear', dest='last_year', type=int, default=2023)
