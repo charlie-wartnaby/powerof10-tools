@@ -735,10 +735,18 @@ def process_one_excel_worksheet(input_file, worksheet):
         if name is None:
             print(f'WARNING: name missing at row {excel_row_number}')
             continue
+        # Name URL is optional
+        name_url = row['name url'] if 'name url' in row else None
+        name_url = str(name_url).strip() if name_url else ''
         date = row['date']
         if date is None:
             print(f'WARNING: date missing at row {excel_row_number}')
             continue
+        # Fixture is optional
+        fixture = row['fixture'] if 'fixture' in df.columns else None
+        fixture = str(fixture).strip() if fixture else ''
+        fixture_url = row['fixture url'] if 'fixture url' in df.columns else None
+        fixture_url = str(fixture_url).strip() if fixture_url else ''
         event = row['po10 event']
         if event is None:
             print(f'WARNING: Po10 event code missing at row {excel_row_number}')
@@ -770,8 +778,8 @@ def process_one_excel_worksheet(input_file, worksheet):
         if gender not in ['M', 'W']:
             print(f'WARNING: gender not W or M at row {excel_row_number}')
             continue
-        perf = construct_performance(event, gender, category, perf, name, '',
-                            date, '', '', input_file + ':' + worksheet.title)
+        perf = construct_performance(event, gender, category, perf, name, name_url,
+                            date, fixture, fixture_url, input_file + ':' + worksheet.title)
         process_performance(perf)
         performance_count['File(s)'] += 1
 

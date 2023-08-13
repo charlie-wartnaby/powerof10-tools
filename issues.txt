@@ -23,6 +23,6 @@ o Age group boundary e.g. Adelaide TJ
 o Wind-assisted example?
 o 1st/2nd claim example?
 
-Add venue column for hand-entered records
-
 AO appears twice with different heights in HJ W ALL
+
+A lot of missing entries now in "M ALL", something gone wrong
