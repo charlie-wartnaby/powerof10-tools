@@ -23,8 +23,6 @@ o Age group boundary e.g. Adelaide TJ
 o Wind-assisted example?
 o 1st/2nd claim example?
 
-Cache performances found with key of URL used to get them? And save to database file to avoid repeating whole trawl.
-
 Add venue column for hand-entered records
 
 Warn if any spreadsheet rows skipped due to parsing problems

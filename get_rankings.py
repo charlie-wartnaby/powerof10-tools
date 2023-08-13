@@ -7,16 +7,25 @@ import datetime
 import openpyxl
 import os
 import pandas
+import pickle
 import re
 import requests   # Not included by default, use pip install to add
 import sys
 
+if sys.version_info.major < 3:
+    print('This script needs Python 3')
+    sys.exit(1)
+if sys.version_info.minor < 6:
+    print('WARNING: this script assumes ordered dicts (Python 3.6+) when it builds cache keys, bad things may happen here')
+
 
 class Performance():
-    def __init__(self, event, score, original_special, decimal_places, athlete_name, athlete_url='', date='',
+    def __init__(self, event, score, category, gender, original_special, decimal_places, athlete_name, athlete_url='', date='',
                        fixture_name='', fixture_url='', source=''):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
+        self.category = category # e.g. U20 or ALL
+        self.gender = gender # W or M
         self.original_special = original_special # for wind-assisted detail etc from club records
         self.decimal_places = decimal_places # so we can use original precision which may imply electronic timing etc
         self.athlete_name = athlete_name
@@ -271,27 +280,30 @@ def make_numeric_score_from_performance_string(perf):
 
     return total_score, decimal_places, original_special
 
-
-def process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source):
-    if category not in record:
-        record[category] = {}
-    if event not in record[category]:
-        # First occurrence of this event so start new
-        record[category][event] = {}
-    if gender not in record[category][event]:
-        # First performance by this gender in this event so start new list
-        record[category][event][gender] = []
-
-    if event not in known_events_lookup:
-        print(f'Warning: unknown event {event}, ignoring')
-        return
-    smaller_score_better = known_events_lookup[event][0]
-
+def construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source):
     score, original_dp, original_special = make_numeric_score_from_performance_string(perf)
+    perf = Performance(event, score, category, gender, original_special, original_dp, name, url, 
+                        date, fixture_name, fixture_url, source)
+    return perf
+
+def process_performance(perf):
+    if perf.category not in record:
+        record[perf.category] = {}
+    if perf.event not in record[perf.category]:
+        # First occurrence of this event so start new
+        record[perf.category][perf.event] = {}
+    if perf.gender not in record[perf.category][perf.event]:
+        # First performance by this gender in this event so start new list
+        record[perf.category][perf.event][perf.gender] = []
+
+    if perf.event not in known_events_lookup:
+        print(f'Warning: unknown event {perf.event}, ignoring')
+        return
+    smaller_score_better = known_events_lookup[perf.event][0]
 
     max_records = max_records_all if category == 'ALL' else max_regords_age_group
 
-    record_list = record[category][event][gender]
+    record_list = record[perf.category][perf.event][perf.gender]
     add_record = False
     if len(record_list) < max_records:
         # We don't have enough records for this event yet so add
@@ -302,13 +314,11 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
         # record-holders; and a chance to line up data from different sources in
         # the output to show agreement where they match
         if smaller_score_better:
-            if score <= prev_worst_score: add_record = True
+            if perf.score <= prev_worst_score: add_record = True
         else:
-            if score >= prev_worst_score: add_record = True
+            if perf.score >= prev_worst_score: add_record = True
 
     if add_record:
-        perf = Performance(event, score, original_special, original_dp, name, url, 
-                           date, fixture_name, fixture_url, source)
         same_score_seen = False
         tie_same_name_managed = False
         for existing_perf_list in record_list:
@@ -359,7 +369,7 @@ def process_performance(event, gender, category, perf, name, url, date, fixture_
         # Keep list at max required length 
         del record_list[max_records :]
 
-def process_one_rankings_table(rows, gender, category, source):
+def process_one_rankings_table(rows, gender, category, source, perf_list):
     state = "seeking_title"
     row_idx = 0
     while True:
@@ -398,14 +408,14 @@ def process_one_rankings_table(rows, gender, category, source):
                     anchor = get_html_content(venue_link.inner_text, 'a')
                     fixture_name = anchor[0].inner_text
                     fixture_url = powerof10_root_url + anchor[0].attribs["href"]
-                    process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
-                    performance_count['Po10'] += 1
+                    perf = construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
+                    perf_list.append(perf)
         else:
             # unknown state
             state = "seeking_title"
         row_idx += 1
 
-def process_one_po10_year_gender(club_id, year, gender, category):
+def process_one_po10_year_gender(club_id, year, gender, category, performance_cache):
 
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : category,
@@ -414,44 +424,62 @@ def process_one_po10_year_gender(club_id, year, gender, category):
                       'firstclaimonly' : 'y',
                       'limits'         : 'n'} # y faster for debug but don't want to miss rarely performed events so 'n' for completeness
 
-    page_response = requests.get(powerof10_root_url + '/rankings/rankinglists.aspx', request_params)
+    url = powerof10_root_url + '/rankings/rankinglists.aspx'
+    cache_key = make_cache_key(url, request_params)
+    perf_list = performance_cache.get(cache_key, None)
 
-    print(f'PowerOf10 club {club_id} year {year} gender {gender} category {category} page return status {page_response.status_code}')
+    report_string_base = f'PowerOf10 club {club_id} year {year} gender {gender} category {category} '
+    if perf_list is None:
+        perf_list = []
 
-    if page_response.status_code != 200:
-        print(f'HTTP error code fetching page: {page_response.status_code}')
-        return
+        page_response = requests.get(url, request_params)
 
-    debug = False
-    if debug:
-        with open('shortened_example.htm') as fd:
-            input_text = fd.read()
-    else:
+        print(report_string_base + f'page return status {page_response.status_code}')
+
+        if page_response.status_code != 200:
+            print(f'HTTP error code fetching page: {page_response.status_code}')
+            return
+
         input_text = page_response.text
+        source = f'Po10 {year}'
+
+        tables = get_html_content(input_text, 'table')
+        second_level_tables = []
+        for table in tables:
+            nested_tables = get_html_content(table.inner_text, 'table')
+            second_level_tables.extend(nested_tables)
         
-    source = f'Po10 {year}'
+        for table in second_level_tables: # table of interest always a child table?
+            rows = get_html_content(table.inner_text, 'tr')
+            if len(rows) < 3:
+                continue
+            if 'class' not in rows[0].attribs or rows[0].attribs['class'] != 'rankinglisttitle':
+                continue
+            if 'class' not in rows[1].attribs or rows[1].attribs['class'] != 'rankinglistheadings':
+                continue
+            # Looks like we've found the table of results
+            process_one_rankings_table(rows, gender, category, source, perf_list)
 
-    tables = get_html_content(input_text, 'table')
-    second_level_tables = []
-    for table in tables:
-        nested_tables = get_html_content(table.inner_text, 'table')
-        second_level_tables.extend(nested_tables)
-    
-    for table in second_level_tables: # table of interest always a child table?
-        rows = get_html_content(table.inner_text, 'tr')
-        if len(rows) < 3:
-            continue
-        if 'class' not in rows[0].attribs or rows[0].attribs['class'] != 'rankinglisttitle':
-            continue
-        if 'class' not in rows[1].attribs or rows[1].attribs['class'] != 'rankinglistheadings':
-            continue
-        # Looks like we've found the table of results
-        process_one_rankings_table(rows, gender, category, source)
+        performance_cache[cache_key] = perf_list
+    else:
+        print(report_string_base + f'{len(perf_list)} performances from cache')
 
-    if debug:
-        sys.exit(0)
+    for perf in perf_list:
+        process_performance(perf)
+        performance_count['Po10'] += 1
 
-def process_one_runbritain_year_gender(club_id, year, gender, category, event):
+
+def make_cache_key(url, request_params):
+    """Make unique string for web request to use as dict key for cache of previous
+    web results"""
+
+    cache_key = url + '?'
+    for key, value in request_params.items(): # ordered as inserted in Python 3.6+
+        cache_key += key + '=' + value + '&' # will leave trailing & but who cares
+    return cache_key
+
+
+def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache):
 
     request_params = {'clubid'       : str(club_id),
                       'sex'          : gender,
@@ -469,40 +497,57 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event):
         request_params['agemin'] = str(min_age)
         request_params['agemax'] = str(max_age)
 
-    page_response = requests.get(runbritain_root_url + '/rankings/rankinglist.aspx', request_params)
+    url = runbritain_root_url + '/rankings/rankinglist.aspx'
+    cache_key = make_cache_key(url, request_params)
+    perf_list = performance_cache.get(cache_key, None)
 
-    print(f'Runbritain club {club_id} year {year} gender {gender} category {category} event {event} page return status {page_response.status_code}')
+    report_string_base = f'Runbritain club {club_id} year {year} gender {gender} category {category} event {event} '
 
-    if page_response.status_code != 200:
-        print(f'HTTP error code fetching page: {page_response.status_code}')
-        return
+    if perf_list is None:
+        perf_list = []
+        page_response = requests.get(runbritain_root_url + '/rankings/rankinglist.aspx', request_params)
 
-    input_text = page_response.text
-    results_array_regex = re.compile(r'runners =\s*(\[.*?\]);', flags=re.DOTALL)
-    array_match = results_array_regex.search(input_text)
+        print(report_string_base + f'page return status {page_response.status_code}')
 
-    if array_match is None:
-        print('No data found')
+        if page_response.status_code != 200:
+            print(f'HTTP error code fetching page: {page_response.status_code}')
+            return
+
+        input_text = page_response.text
+        results_array_regex = re.compile(r'runners =\s*(\[.*?\]);', flags=re.DOTALL)
+        array_match = results_array_regex.search(input_text)
+
+        if array_match is None:
+            print('No data found')
+        else:
+            source = f'Runbritain {year}'
+            array_str = array_match.group(1)
+            array_str = array_str.replace('\n', ' ').replace('\r', '')
+            results_array = eval(array_str)
+            for result in results_array:
+                if not result[6] : continue # No name, could be second performance by same person
+                anchor = get_html_content(result[6], 'a')
+                name = anchor[0].inner_text
+                url = runbritain_root_url + anchor[0].attribs["href"]
+                perf = result[1] # Chip time
+                if not perf:
+                    perf = result[3] # Gun time
+                date = result[10]
+                venue_link = result[9]
+                anchor = get_html_content(venue_link, 'a')
+                fixture_name = anchor[0].inner_text
+                fixture_url = runbritain_root_url + anchor[0].attribs["href"]
+                perf = construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
+                perf_list.append(perf)
+
+        performance_cache[cache_key] = perf_list
     else:
-        source = f'Runbritain {year}'
-        array_str = array_match.group(1)
-        array_str = array_str.replace('\n', ' ').replace('\r', '')
-        results_array = eval(array_str)
-        for result in results_array:
-            if not result[6] : continue # No name, could be second performance by same person
-            anchor = get_html_content(result[6], 'a')
-            name = anchor[0].inner_text
-            url = runbritain_root_url + anchor[0].attribs["href"]
-            perf = result[1] # Chip time
-            if not perf:
-                perf = result[3] # Gun time
-            date = result[10]
-            venue_link = result[9]
-            anchor = get_html_content(venue_link, 'a')
-            fixture_name = anchor[0].inner_text
-            fixture_url = runbritain_root_url + anchor[0].attribs["href"]
-            process_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
-            performance_count['Runbritain'] += 1
+        print(report_string_base + f'{len(perf_list)} performances from cache')
+    
+    for perf in perf_list:
+        process_performance(perf)
+        performance_count['Runbritain'] += 1
+
 
 def format_sexagesimal(value, num_numbers, decimal_places):
     """Format as HH:MM:SS (3 numbers), SS.sss (1 number) etc"""
@@ -536,8 +581,8 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                     '<html>\n',
                     '<body>\n',
                     f'<h1>Club Records</h1>\n\n',
-                    f'<p>Initially autogenerated  on {datetime.date.today()} from:</p>',
-                    f'<ul>']
+                    f'<p>Initially autogenerated  on {datetime.date.today()} from:</p>\n',
+                    f'<ul>\n']
     if do_po10:
         header_part.append(f'<li><a href="{powerof10_root_url}/clubs/club.aspx?clubid={club_id}">PowerOf10 club page</a>  {first_year} - {last_year}</li>\n')
     if do_runbritain:
@@ -694,8 +739,9 @@ def process_one_excel_worksheet(input_file, worksheet):
         if not event: continue
         gender = gender.upper().strip()
         if gender not in ['M', 'W']: continue
-        process_performance(event, gender, category, perf, name, '',
+        perf = construct_performance(event, gender, category, perf, name, '',
                             date, '', '', input_file + ':' + worksheet.title)
+        process_performance(perf)
         performance_count['File(s)'] += 1
 
 def main(club_id=238, output_file='records.htm', first_year=2015, last_year=2015, 
@@ -706,16 +752,33 @@ def main(club_id=238, output_file='records.htm', first_year=2015, last_year=2015
     for input_file in input_files:
         process_one_input_file(input_file)
 
+    # Retrieve cache of performances obtained from web trawl previously
+    try:
+        with open(cache_file, 'rb') as fd:
+            performance_cache = pickle.load(fd)
+            print(f'Cached web results retrieved from {cache_file}')
+    except IOError:
+        print(f"Cache file {cache_file} can't be opened, starting new cache")
+        performance_cache = {}
+
     for year in range(first_year, last_year + 1):
         for gender in ['W']:
             if do_po10:
                 for category in powerof10_categories:
-                    process_one_po10_year_gender(club_id, year, gender, category)
+                    process_one_po10_year_gender(club_id, year, gender, category, performance_cache)
             if do_runbritain:
-                for (event, _, _, runbritain) in [('10000', True, 2, True)]: #, ('3000', True, 2, True)]: # known_events: # debug [('Mar', True, 3, True)]:
+                for (event, _, _, runbritain) in known_events: # debug [('Mar', True, 3, True)]:
                     if not runbritain: continue
-                    for (category, _, _) in [('V50', 50, 54)]: # runbritain_categories: # [('ALL', 0, 0), ('V50', 50, 54)]
-                        process_one_runbritain_year_gender(club_id, year, gender, category, event)
+                    for (category, _, _) in runbritain_categories: # debug [('ALL', 0, 0), ('V50', 50, 54)]
+                        process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache)
+
+    # Save updated cache for next time
+    try:
+        with open(cache_file, 'wb') as fd:
+            pickle.dump(performance_cache, fd)
+        print(f'Cached web results written to {cache_file}')
+    except IOError:
+        print(f"Cache file {cache_file} can't be written, any new web results this time not cached")
 
     output_records(output_file, first_year, last_year, club_id, do_po10, do_runbritain, input_files)
 
