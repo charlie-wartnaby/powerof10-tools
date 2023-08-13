@@ -202,6 +202,7 @@ for (category, min_age, max_age) in runbritain_categories:
     runbritain_category_lookup[category] = (min_age, max_age)
 
 
+
 def get_html_content(html_text, html_tag):
     """Extracts instances of text data enclosed by required tag"""
 
@@ -249,8 +250,10 @@ def get_html_content(html_text, html_tag):
 
     return contents
 
+
 def debold(bold_tagged_string):
     return bold_tagged_string.replace('<b>', '').replace('</b>', '')
+
 
 def make_numeric_score_from_performance_string(perf):
     # For values like 2:17:23 or 1:28.37 need to split (hours)/mins/sec
@@ -280,11 +283,13 @@ def make_numeric_score_from_performance_string(perf):
 
     return total_score, decimal_places, original_special
 
+
 def construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source):
     score, original_dp, original_special = make_numeric_score_from_performance_string(perf)
     perf = Performance(event, score, category, gender, original_special, original_dp, name, url, 
                         date, fixture_name, fixture_url, source)
     return perf
+
 
 def process_performance(perf):
     if perf.category not in record:
@@ -369,6 +374,7 @@ def process_performance(perf):
         # Keep list at max required length 
         del record_list[max_records :]
 
+
 def process_one_rankings_table(rows, gender, category, source, perf_list):
     state = "seeking_title"
     row_idx = 0
@@ -414,6 +420,7 @@ def process_one_rankings_table(rows, gender, category, source, perf_list):
             # unknown state
             state = "seeking_title"
         row_idx += 1
+
 
 def process_one_po10_year_gender(club_id, year, gender, category, performance_cache):
 
@@ -673,7 +680,6 @@ def process_one_input_file(input_file):
     for worksheet in workbook.worksheets:
         process_one_excel_worksheet(input_file, worksheet)
 
-    pass
 
 def process_one_excel_worksheet(input_file, worksheet):
 
@@ -783,6 +789,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         process_performance(perf)
         performance_count['File(s)'] += 1
 
+
 def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
          do_po10=False, do_runbritain=True, input_files=[],
          cache_file='cache.pkl'):
@@ -801,7 +808,7 @@ def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023
         performance_cache = {}
 
     for year in range(first_year, last_year + 1):
-        for gender in ['W']:
+        for gender in ['W', 'M']:
             if do_po10:
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category, performance_cache)
@@ -820,6 +827,7 @@ def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023
         print(f"Cache file {cache_file} can't be written, any new web results this time not cached")
 
     output_records(output_file, first_year, last_year, club_id, do_po10, do_runbritain, input_files)
+
 
 if __name__ == '__main__':
     # Main entry point

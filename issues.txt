@@ -25,4 +25,4 @@ o 1st/2nd claim example?
 
 AO appears twice with different heights in HJ W ALL
 
-A lot of missing entries now in "M ALL", something gone wrong
+Only doing first 3 even for ALL category
