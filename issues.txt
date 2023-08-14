@@ -1,12 +1,4 @@
 
-https://thepowerof10.info/rankings/rankinglists.aspx?clubid=238&agegroups=ALL&sex=M&year=2018&firstclaimonly=y&limits=n
-lists Sullivan Smith's 10000 performance at Parliament Hill, also known club record.
-Why not in age cat output from runbritain?
-Is in overall male list from po10
-https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=10000&sex=M&year=2018&agemin=40&agemax=45&limit=n&clubid=238
--- does show it on webpage, why not captured?
-
-
 Add racewalks and other events runbritain does support though not shown in its dropdown options,
 e.g. 3000W works:
 https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=3000W&sex=W&year=2023&agemin=60&agemax=75&limit=n&clubid=238
