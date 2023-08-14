@@ -1,8 +1,4 @@
 
-Add racewalks and other events runbritain does support though not shown in its dropdown options,
-e.g. 3000W works:
-https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=3000W&sex=W&year=2023&agemin=60&agemax=75&limit=n&clubid=238
-
 Find examples where club record not aligned with Po10/RB extraction
 o Age group boundary e.g. Adelaide TJ
  - TJ W U15 Po10 has 10.91m for AO, not in club records
