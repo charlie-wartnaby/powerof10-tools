@@ -135,6 +135,8 @@ known_events = [
                 ('HT5K',       False,       1,        False    ),
                 ('HT6K',       False,       1,        False    ),
                 ('HT7.26K',    False,       1,        False    ),
+                ('WT5.45K',    False,       1,        False    ),
+                ('WT7.26K',    False,       1,        False    ),
                 ('WT9.08K',    False,       1,        False    ),
                 ('WT11.34K',   False,       1,        False    ),
                 ('JT400',      False,       1,        False    ),
@@ -268,6 +270,11 @@ def make_numeric_score_from_performance_string(perf):
     perf = perf.strip()
 
     # TODO handle wind-assisted etc from club records
+
+    # In "6m 26.5s" and "3min 17.76s" treat 'm ' or 'min ' as sexagesimal separator
+    # by replacing with ':'
+    perf = re.sub(r'([0-9])(m(in)? *)([0-9])', r'\g<1>:\g<4>', perf)
+
     for char_idx, c in enumerate(perf):
         if (not (c >= '0' and c <= '9') and
                        not c in ['.', ':']):
@@ -720,7 +727,7 @@ def process_one_excel_worksheet(input_file, worksheet):
     df.rename(columns={'year' : 'date', 'record holder' : 'name'}, inplace=True)
 
     col_name_list = df.columns.tolist()
-    for reqd_heading in ['performance', 'date', 'name', 'po10 event', 'gender', 'age group']:
+    for reqd_heading in ['performance', 'date', 'name', 'po10 event', 'gender', 'age code']:
         if reqd_heading not in col_name_list:
             if reqd_heading == 'date': reqd_heading = 'date [or year]'
             if reqd_heading == 'name': reqd_heading = 'date [or record holder]'
@@ -742,7 +749,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         if not perf:
             print(f'WARNING: performance missing at row {excel_row_number}')
             continue
-        if name is None:
+        if not name:
             print(f'WARNING: name missing at row {excel_row_number}')
             continue
         # Name URL is optional
@@ -765,7 +772,8 @@ def process_one_excel_worksheet(input_file, worksheet):
         if gender is None:
             print(f'WARNING: gender missing at row {excel_row_number}')
             continue
-        category = row['age group']
+        category = row['age code']
+        category = str(category).strip() if category is not None else ''
         if category is None:
             print(f'WARNING: age category missing at row {excel_row_number}')
             continue
