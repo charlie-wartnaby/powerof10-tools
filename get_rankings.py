@@ -794,7 +794,7 @@ def process_one_excel_worksheet(input_file, worksheet):
         performance_count['File(s)'] += 1
 
 
-def main(club_id=238, output_file='records.htm', first_year=2006, last_year=2023, 
+def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
          do_po10=False, do_runbritain=True, input_files=[],
          cache_file='cache.pkl'):
 
@@ -843,7 +843,7 @@ if __name__ == '__main__':
     parser.add_argument(dest='excel_file', nargs ='*') # .xlsx records files
     parser.add_argument('--powerof10', dest='do_po10', choices=yes_no_choices, default='y')
     parser.add_argument('--runbritain', dest='do_runbritain', choices=yes_no_choices, default='y')
-    parser.add_argument('--firstyear', dest='first_year', type=int, default=2006)
+    parser.add_argument('--firstyear', dest='first_year', type=int, default=2004) # A few Po10 results in 2004
     parser.add_argument('--lastyear', dest='last_year', type=int, default=2023)
     parser.add_argument('--clubid', dest='club_id', default=238, type=int)
     parser.add_argument('--output', dest='output_filename', default='records.htm')
