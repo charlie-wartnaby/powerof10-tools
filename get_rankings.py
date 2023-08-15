@@ -732,6 +732,7 @@ def process_one_excel_worksheet(input_file, worksheet):
             if reqd_heading == 'date': reqd_heading = 'date [or year]'
             if reqd_heading == 'name': reqd_heading = 'date [or record holder]'
             print(f'Required heading not found (case insensitive), skipping sheet: {reqd_heading}')
+            return
 
     for row_idx, row in df.iterrows():
         # Can get None obj references as well as empty strings
