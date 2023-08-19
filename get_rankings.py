@@ -364,10 +364,11 @@ def process_performance(perf):
                     # Could be manual record to put alongside Po10 say
                     existing_perf_list.append(perf)
                 break
-        if same_score_seen: return # Nothing to do as overall record list length unchanged, added to existing slot if anything
+        if not same_score_seen:
+            record_list.append([perf])
+            record_list.sort(key=lambda x: x[0].score, reverse=not smaller_score_better)
 
-        record_list.append([perf])
-        record_list.sort(key=lambda x: x[0].score, reverse=not smaller_score_better)
+        # Ensure one name only appears with their top score
         athlete_names = {}
         rec_idx = 0
         while rec_idx < len(record_list):
@@ -377,10 +378,9 @@ def process_performance(perf):
                 if existing_record_name in athlete_names:
                     # Avoid same person appearing multiple times, allowing for ties
                     del record_list[rec_idx][perf_idx]
-                    break
-                perf_idx += 1
-            else:
-                athlete_names[existing_record_name] = True
+                else:
+                    athlete_names[existing_record_name] = True
+                    perf_idx += 1
             if not record_list[rec_idx]:
                 # Usual case after a deletion: no tie, that score was for only one athlete
                 del record_list[rec_idx]
