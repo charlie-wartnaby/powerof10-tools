@@ -10,6 +10,4 @@ AO appears twice with different heights in HJ W ALL
 
 Need some way to invalidate cache for latest year, else will miss newer performances this year
 
-Figure out Po10 event codes for veteran hurdles of various heights
-
 What does 'i' flag mean on Peter Howard's 3000W from 2009 sheet, MV65?

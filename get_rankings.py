@@ -100,13 +100,15 @@ known_events = [
                 ('75HU15W',    True,        1,        False    ),
                 ('80HU15M',    True,        1,        False    ),
                 ('80HU17W',    True,        1,        False    ),
-                ('80HW',       True,        1,        False    ),
+                ('80HW40',     True,        1,        False    ),
+                ('80HW50',     True,        1,        False    ),
                 ('100HW',      True,        1,        False    ),
                 ('100HM50',    True,        1,        False    ),
                 ('100HU17M',   True,        1,        False    ),
                 ('110HU20M',   True,        1,        False    ),
                 ('110H',       True,        1,        False    ),
                 ('110HM35',    True,        1,        False    ),
+                ('110HM50',    True,        1,        False    ),
                 ('300HW',      True,        1,        False    ),
                 ('400H',       True,        1,        False    ),
                 ('400HW',      True,        1,        False    ),
@@ -267,6 +269,8 @@ def make_numeric_score_from_performance_string(perf):
     original_special = ''
 
     perf = perf.replace('pts', '') # for pentathlon/decathlon etc
+    perf = perf.replace(' ', '')   # Club records can have random spaces
+    perf = perf.replace(';', ':')  # Semicolons sometimes
     perf = perf.strip()
 
     # TODO handle wind-assisted etc from club records
