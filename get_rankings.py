@@ -370,16 +370,20 @@ def process_performance(perf):
 
         # Ensure one name only appears with their top score
         athlete_names = {}
+        lowest_rec_idx_for_this_name = len(record_list)
         rec_idx = 0
         while rec_idx < len(record_list):
             perf_idx = 0
             while perf_idx < len(record_list[rec_idx]):
                 existing_record_name = record_list[rec_idx][perf_idx].athlete_name
-                if existing_record_name in athlete_names:
-                    # Avoid same person appearing multiple times, allowing for ties
+                if existing_record_name in athlete_names and rec_idx > lowest_rec_idx_for_this_name:
+                    # Avoid same person appearing multiple times, allowing for ties,
+                    # but nice to show multiple sources for identical performance
                     del record_list[rec_idx][perf_idx]
                 else:
                     athlete_names[existing_record_name] = True
+                    if rec_idx < lowest_rec_idx_for_this_name:
+                        lowest_rec_idx_for_this_name = rec_idx
                     perf_idx += 1
             if not record_list[rec_idx]:
                 # Usual case after a deletion: no tie, that score was for only one athlete

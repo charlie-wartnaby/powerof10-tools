@@ -9,5 +9,3 @@ o 1st/2nd claim example?
 Need some way to invalidate cache for latest year, else will miss newer performances this year
 
 What does 'i' flag mean on Peter Howard's 3000W from 2009 sheet, MV65?
-
-Get Graham Tuck from first of 2009 records or historical but not both, why?
