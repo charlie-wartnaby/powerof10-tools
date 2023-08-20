@@ -441,7 +441,7 @@ def process_one_rankings_table(rows, gender, category, source, perf_list):
         row_idx += 1
 
 
-def process_one_po10_year_gender(club_id, year, gender, category, performance_cache):
+def process_one_po10_year_gender(club_id, year, gender, category, performance_cache, rebuild_cache):
 
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : category,
@@ -452,7 +452,10 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
 
     url = powerof10_root_url + '/rankings/rankinglists.aspx'
     cache_key = make_cache_key(url, request_params)
-    perf_list = performance_cache.get(cache_key, None)
+    if rebuild_cache:
+        perf_list = None
+    else:
+        perf_list = performance_cache.get(cache_key, None)
 
     report_string_base = f'PowerOf10 club {club_id} year {year} gender {gender} category {category} '
     if perf_list is None:
@@ -505,7 +508,7 @@ def make_cache_key(url, request_params):
     return cache_key
 
 
-def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache):
+def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache, rebuild_cache):
 
     request_params = {'clubid'       : str(club_id),
                       'sex'          : gender,
@@ -525,7 +528,11 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
 
     url = runbritain_root_url + '/rankings/rankinglist.aspx'
     cache_key = make_cache_key(url, request_params)
-    perf_list = performance_cache.get(cache_key, None)
+
+    if rebuild_cache:
+        perf_list = None
+    else:
+        perf_list = performance_cache.get(cache_key, None)
 
     report_string_base = f'Runbritain club {club_id} year {year} gender {gender} category {category} event {event} '
 
@@ -663,12 +670,12 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                         bulk_part.append(f'  <td>{rank_str}</td>\n')
                         bulk_part.append(f'  <td>{score_str}</td>\n')
                         if perf.athlete_url:
-                            bulk_part.append(f'  <td><a href="{perf.athlete_url}"> {perf.athlete_name}</a></td>\n')
+                            bulk_part.append(f'  <td><a href="{perf.athlete_url}">{perf.athlete_name}</a></td>\n')
                         else:
                             bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
                         bulk_part.append(f'  <td>{perf.date}</td>\n')
                         if perf.fixture_url:
-                            bulk_part.append(f'  <td><a href="{perf.fixture_url}"> {perf.fixture_name}</a></td>\n')
+                            bulk_part.append(f'  <td><a href="{perf.fixture_url}">{perf.fixture_name}</a></td>\n')
                         else:
                             bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
                         bulk_part.append(f'  <td>{perf.source}</td>\n')
@@ -813,7 +820,7 @@ def process_one_excel_worksheet(input_file, worksheet):
 
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
          do_po10=False, do_runbritain=True, input_files=[],
-         cache_file='cache.pkl'):
+         cache_file='cache.pkl', rebuild_last_year=False):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
@@ -829,15 +836,18 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023
         performance_cache = {}
 
     for year in range(first_year, last_year + 1):
+        rebuild_cache = rebuild_last_year and year == last_year
         for gender in ['W', 'M']:
             if do_po10:
                 for category in powerof10_categories:
-                    process_one_po10_year_gender(club_id, year, gender, category, performance_cache)
+                    process_one_po10_year_gender(club_id, year, gender, category,
+                                                 performance_cache, rebuild_cache)
             if do_runbritain:
                 for (event, _, _, runbritain) in known_events: # debug [('Mar', True, 3, True)]:
                     if not runbritain: continue
                     for (category, _, _) in runbritain_categories: # debug [('ALL', 0, 0), ('V50', 50, 54)]
-                        process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache)
+                        process_one_runbritain_year_gender(club_id, year, gender, category, event,
+                                                            performance_cache, rebuild_cache)
 
     # Save updated cache for next time
     try:
@@ -856,21 +866,25 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Build club records tables from thepowerof10, runbritain and Excel files')
  
     yes_no_choices = ['y', 'Y', 'n', 'N']
+    cnc_po10_club_id = 238
+    this_year = datetime.datetime.now().year
 
     parser.add_argument(dest='excel_file', nargs ='*') # .xlsx records files
     parser.add_argument('--powerof10', dest='do_po10', choices=yes_no_choices, default='y')
     parser.add_argument('--runbritain', dest='do_runbritain', choices=yes_no_choices, default='y')
     parser.add_argument('--firstyear', dest='first_year', type=int, default=2004) # A few Po10 results in 2004
-    parser.add_argument('--lastyear', dest='last_year', type=int, default=2023)
-    parser.add_argument('--clubid', dest='club_id', default=238, type=int)
+    parser.add_argument('--lastyear', dest='last_year', type=int, default=this_year)
+    parser.add_argument('--clubid', dest='club_id', type=int, default=cnc_po10_club_id)
     parser.add_argument('--output', dest='output_filename', default='records.htm')
     parser.add_argument('--cache', dest='cache_filename', default='cache.pkl')
+    parser.add_argument('--rebuild-last-year', dest='rebuild_last_year',  choices=yes_no_choices, default='n')
 
     args = parser.parse_args()
 
     do_po10 = args.do_po10.lower().startswith('y')
     do_runbritain = args.do_runbritain.lower().startswith('y')
+    rebuild_last_year = args.rebuild_last_year.lower().startswith('y')
 
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
-         input_files=args.excel_file, cache_file=args.cache_filename)
+         input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year)
