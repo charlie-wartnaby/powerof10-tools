@@ -9,3 +9,8 @@ o 1st/2nd claim example?
 Need some way to invalidate cache for latest year, else will miss newer performances this year
 
 What does 'i' flag mean on Peter Howard's 3000W from 2009 sheet, MV65?
+
+Paul Aste
+I wish I was still a member of C&C but I think that expired in 2020 - either my spot on the
+road 10k should be erased or I've got some other times to give you from the US!
+-- need some way to add a manual record to 'annihilate' an automatic find?

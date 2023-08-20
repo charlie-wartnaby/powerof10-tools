@@ -441,13 +441,14 @@ def process_one_rankings_table(rows, gender, category, source, perf_list):
         row_idx += 1
 
 
-def process_one_po10_year_gender(club_id, year, gender, category, performance_cache, rebuild_cache):
+def process_one_po10_year_gender(club_id, year, gender, category, performance_cache,
+                                  rebuild_cache, first_claim_only):
 
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : category,
                       'sex'            : gender,
                       'year'           : str(year),
-                      'firstclaimonly' : 'y',
+                      'firstclaimonly' : 'y' if first_claim_only else 'n',
                       'limits'         : 'n'} # y faster for debug but don't want to miss rarely performed events so 'n' for completeness
 
     url = powerof10_root_url + '/rankings/rankinglists.aspx'
@@ -508,13 +509,15 @@ def make_cache_key(url, request_params):
     return cache_key
 
 
-def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache, rebuild_cache):
+def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache,
+                                        rebuild_cache, first_claim_only):
 
-    request_params = {'clubid'       : str(club_id),
-                      'sex'          : gender,
-                      'year'         : str(year),
-                      'event'        : event,
-                      'limit'        : 'n'      } # Otherwise miss slower performances, undocumented option
+    request_params = {'clubid'         : str(club_id),
+                      'sex'            : gender,
+                      'year'           : str(year),
+                      'event'          : event,
+                      'firstclaimonly' : 'y' if first_claim_only else 'n',
+                      'limit'          : 'n'      } # Otherwise miss slower performances, undocumented option
 
     (min_age, max_age) = runbritain_category_lookup[category]
     if min_age == 0 and max_age == 0:
@@ -820,7 +823,7 @@ def process_one_excel_worksheet(input_file, worksheet):
 
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
          do_po10=False, do_runbritain=True, input_files=[],
-         cache_file='cache.pkl', rebuild_last_year=False):
+         cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
@@ -841,13 +844,13 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023
             if do_po10:
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category,
-                                                 performance_cache, rebuild_cache)
+                                                 performance_cache, rebuild_cache, first_claim_only)
             if do_runbritain:
                 for (event, _, _, runbritain) in known_events: # debug [('Mar', True, 3, True)]:
                     if not runbritain: continue
                     for (category, _, _) in runbritain_categories: # debug [('ALL', 0, 0), ('V50', 50, 54)]
                         process_one_runbritain_year_gender(club_id, year, gender, category, event,
-                                                            performance_cache, rebuild_cache)
+                                                            performance_cache, rebuild_cache, first_claim_only)
 
     # Save updated cache for next time
     try:
@@ -878,13 +881,16 @@ if __name__ == '__main__':
     parser.add_argument('--output', dest='output_filename', default='records.htm')
     parser.add_argument('--cache', dest='cache_filename', default='cache.pkl')
     parser.add_argument('--rebuild-last-year', dest='rebuild_last_year',  choices=yes_no_choices, default='n')
+    parser.add_argument('--first-claim-only', dest='first_claim_only',  choices=yes_no_choices, default='n')
 
     args = parser.parse_args()
 
     do_po10 = args.do_po10.lower().startswith('y')
     do_runbritain = args.do_runbritain.lower().startswith('y')
     rebuild_last_year = args.rebuild_last_year.lower().startswith('y')
+    first_claim_only = args.first_claim_only.lower().startswith('y')
 
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
-         input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year)
+         input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year,
+         first_claim_only=first_claim_only)
