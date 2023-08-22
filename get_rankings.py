@@ -53,127 +53,127 @@ performance_count = {'Po10'       : 0,
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
-#                event, small-is-good, :-numbers, runbritain
+#                event, small-is-good, :-numbers, runbritain,  Track/Field/Road/Multievent
 known_events = [
-                ('1M',         True,        2,        True     ),
-                ('2M',         True,        2,        True     ),
-                ('5K',         True,        2,        True     ),
-                ('parkrun',    True,        2,        True     ),
-                ('4M',         True,        2,        True     ),
-                ('5M',         True,        2,        True     ),
-                ('10K',        True,        2,        True     ),
-                ('10M',        True,        2,        True     ),
-                ('HM',         True,        2,        True     ),
-                ('Mar',        True,        3,        True     ),
-                ('50K',        True,        3,        True     ),
-                ('100K',       True,        3,        True     ),
-                ('60' ,        True,        1,        True     ),
-                ('80' ,        True,        1,        True     ),
-                ('100',        True,        1,        True     ),
-                ('150',        True,        1,        True     ),
-                ('200',        True,        1,        True     ),
-                ('300',        True,        1,        True     ),
-                ('400',        True,        1,        True     ),
-                ('600',        True,        1,        True     ),
-                ('800',        True,        2,        True     ),
-                ('1500',       True,        2,        True     ),
-                ('Mile',       True,        2,        True     ),
-                ('3000',       True,        2,        True     ),
-                ('5000',       True,        2,        True     ),
-                ('10000',      True,        2,        True     ),
-                ('1500SC',     True,        2,        True     ),
-                ('1500SCW',    True,        2,        True     ),
-                ('2000SC',     True,        2,        True     ),
-                ('2000SCW',    True,        2,        True     ),
-                ('3000SC',     True,        2,        True     ),
-                ('3000SCW',    True,        2,        True     ),
-                ('MileW',      True,        2,        True     ), # Walks not shown as runbritain dropdowns but are supported
-                ('1500W',      True,        2,        True     ),
-                ('2000W',      True,        2,        True     ),
-                ('3000W',      True,        2,        True     ),
-                ('5000W',      True,        2,        True     ),
-                ('5MW',        True,        2,        True     ),
-                ('10000W',     True,        2,        True     ),
-                ('10KW',       True,        2,        True     ),
-                ('70HU13W',    True,        1,        True     ),
-                ('75HU13M',    True,        1,        True     ),
-                ('75HU15W',    True,        1,        True     ),
-                ('80HU15M',    True,        1,        True     ),
-                ('80HU17W',    True,        1,        True     ),
-                ('80HW40',     True,        1,        True     ),
-                ('80HW50',     True,        1,        True     ),
-                ('100HW',      True,        1,        True     ), # Hurdles not shown on runbritain but do work
-                ('100HM50',    True,        1,        True     ),
-                ('100HU17M',   True,        1,        True     ),
-                ('110HU20M',   True,        1,        True     ),
-                ('110H',       True,        1,        True     ),
-                ('110HM35',    True,        1,        True     ),
-                ('110HM50',    True,        1,        True     ),
-                ('300HW',      True,        1,        True     ),
-                ('400H',       True,        1,        True     ),
-                ('400HW',      True,        1,        True     ),
-                ('400HU17M',   True,        1,        True     ),
-                ('4x100',      True,        1,        True     ),
-                ('4x400',      True,        2,        True     ),
-                ('HJ',         False,       1,        True     ),
-                ('PV',         False,       1,        True     ),
-                ('LJ',         False,       1,        True     ),
-                ('TJ',         False,       1,        True     ),
-                ('SP2.72K',    False,       1,        True     ), # Some of these weights only for certain age/gender groups,
-                ('SP3K',       False,       1,        True     ), # so inefficient to try them for all, but may as well
-                ('SP3.25K',    False,       1,        True     ),
-                ('SP4K',       False,       1,        True     ),
-                ('SP5K',       False,       1,        True     ),
-                ('SP6K',       False,       1,        True     ),
-                ('SP7.26K',    False,       1,        True     ),
-                ('DT0.75K',    False,       1,        True     ),
-                ('DT1K',       False,       1,        True     ),
-                ('DT1.25K',    False,       1,        True     ),
-                ('DT1.5K',     False,       1,        True     ),
-                ('DT1.75K',    False,       1,        True     ),
-                ('DT2K',       False,       1,        True     ),
-                ('HT3K',       False,       1,        True     ),
-                ('HT4K',       False,       1,        True     ),
-                ('HT5K',       False,       1,        True     ),
-                ('HT6K',       False,       1,        True     ),
-                ('HT7.26K',    False,       1,        True     ),
-                ('WT5.45K',    False,       1,        True     ),
-                ('WT7.26K',    False,       1,        True     ),
-                ('WT9.08K',    False,       1,        True     ),
-                ('WT11.34K',   False,       1,        True     ),
-                ('JT400',      False,       1,        True     ),
-                ('JT500',      False,       1,        True     ),
-                ('JT600',      False,       1,        True     ),
-                ('JT600PRE86', False,       1,        False    ), # Invented here for historical records
-                ('JT600PRE99', False,       1,        False    ), # Invented here for historical records
-                ('JT700',      False,       1,        True     ),
-                ('JT800',      False,       1,        True     ),
-                ('JT800PRE86', False,       1,        False    ), # Invented here for historical records
-                ('Minithon',   False,       1,        False    ), # from C&C club records but not in Po10
-                ('Oct',        False,       1,        False    ), # from C&C club records but not in Po10
-                ('PenU13W',    False,       1,        True     ),
-                ('PenU13M',    False,       1,        True     ),
-                ('PenU15W',    False,       1,        True     ),
-                ('PenU15M',    False,       1,        True     ),
-                ('PenU17W',    False,       1,        True     ),
-                ('PenU17M',    False,       1,        True     ),
-                ('PenU20M',    False,       1,        True     ),
-                ('PenW',       False,       1,        True     ),
-                ('PenIM35',    False,       1,        True     ),
-                ('PenIM40',    False,       1,        True     ),
-                ('PenWtM40',   False,       1,        True     ),
-                ('PenWtM45',   False,       1,        True     ),
-                ('PenWtM55',   False,       1,        True     ),
-                ('PenWtW60',   False,       1,        True     ),
-                ('PenWtM60',   False,       1,        True     ),
-                ('HepW',       False,       1,        True     ),
-                ('HepU17W',    False,       1,        True     ),
-                ('Dec',        False,       1,        True     )
+                ('1M',         True,        2,        True,     'R'     ),
+                ('2M',         True,        2,        True,     'R'     ),
+                ('5K',         True,        2,        True,     'R'     ),
+                ('parkrun',    True,        2,        True,     'R'     ),
+                ('4M',         True,        2,        True,     'R'     ),
+                ('5M',         True,        2,        True,     'R'     ),
+                ('10K',        True,        2,        True,     'R'     ),
+                ('10M',        True,        2,        True,     'R'     ),
+                ('HM',         True,        2,        True,     'R'     ),
+                ('Mar',        True,        3,        True,     'R'     ),
+                ('50K',        True,        3,        True,     'R'     ),
+                ('100K',       True,        3,        True,     'R'     ),
+                ('60' ,        True,        1,        True,     'T'     ),
+                ('80' ,        True,        1,        True,     'T'     ),
+                ('100',        True,        1,        True,     'T'     ),
+                ('150',        True,        1,        True,     'T'     ),
+                ('200',        True,        1,        True,     'T'     ),
+                ('300',        True,        1,        True,     'T'     ),
+                ('400',        True,        1,        True,     'T'     ),
+                ('600',        True,        1,        True,     'T'     ),
+                ('800',        True,        2,        True,     'T'     ),
+                ('1500',       True,        2,        True,     'T'     ),
+                ('Mile',       True,        2,        True,     'T'     ),
+                ('3000',       True,        2,        True,     'T'     ),
+                ('5000',       True,        2,        True,     'T'     ),
+                ('10000',      True,        2,        True,     'T'     ),
+                ('1500SC',     True,        2,        True,     'T'     ),
+                ('1500SCW',    True,        2,        True,     'T'     ),
+                ('2000SC',     True,        2,        True,     'T'     ),
+                ('2000SCW',    True,        2,        True,     'T'     ),
+                ('3000SC',     True,        2,        True,     'T'     ),
+                ('3000SCW',    True,        2,        True,     'T'     ),
+                ('MileW',      True,        2,        True,     'T'     ), # Walks not shown as runbritain dropdowns but are supported
+                ('1500W',      True,        2,        True,     'T'     ),
+                ('2000W',      True,        2,        True,     'T'     ),
+                ('3000W',      True,        2,        True,     'T'     ),
+                ('5000W',      True,        2,        True,     'T'     ),
+                ('5MW',        True,        2,        True,     'R'     ),
+                ('10000W',     True,        2,        True,     'T'     ),
+                ('10KW',       True,        2,        True,     'R'     ),
+                ('70HU13W',    True,        1,        True,     'T'     ),
+                ('75HU13M',    True,        1,        True,     'T'     ),
+                ('75HU15W',    True,        1,        True,     'T'     ),
+                ('80HU15M',    True,        1,        True,     'T'     ),
+                ('80HU17W',    True,        1,        True,     'T'     ),
+                ('80HW40',     True,        1,        True,     'T'     ),
+                ('80HW50',     True,        1,        True,     'T'     ),
+                ('100HW',      True,        1,        True,     'T'     ), # Hurdles not shown on runbritain but do work
+                ('100HM50',    True,        1,        True,     'T'     ),
+                ('100HU17M',   True,        1,        True,     'T'     ),
+                ('110HU20M',   True,        1,        True,     'T'     ),
+                ('110H',       True,        1,        True,     'T'     ),
+                ('110HM35',    True,        1,        True,     'T'     ),
+                ('110HM50',    True,        1,        True,     'T'     ),
+                ('300HW',      True,        1,        True,     'T'     ),
+                ('400H',       True,        1,        True,     'T'     ),
+                ('400HW',      True,        1,        True,     'T'     ),
+                ('400HU17M',   True,        1,        True,     'T'     ),
+                ('4x100',      True,        1,        True,     'T'     ),
+                ('4x400',      True,        2,        True,     'T'     ),
+                ('HJ',         False,       1,        True,     'F'     ),
+                ('PV',         False,       1,        True,     'F'     ),
+                ('LJ',         False,       1,        True,     'F'     ),
+                ('TJ',         False,       1,        True,     'F'     ),
+                ('SP2.72K',    False,       1,        True,     'F'     ), # Some of these weights only for certain age/gender groups,
+                ('SP3K',       False,       1,        True,     'F'     ), # so inefficient to try them for all, but may as well
+                ('SP3.25K',    False,       1,        True,     'F'     ),
+                ('SP4K',       False,       1,        True,     'F'     ),
+                ('SP5K',       False,       1,        True,     'F'     ),
+                ('SP6K',       False,       1,        True,     'F'     ),
+                ('SP7.26K',    False,       1,        True,     'F'     ),
+                ('DT0.75K',    False,       1,        True,     'F'     ),
+                ('DT1K',       False,       1,        True,     'F'     ),
+                ('DT1.25K',    False,       1,        True,     'F'     ),
+                ('DT1.5K',     False,       1,        True,     'F'     ),
+                ('DT1.75K',    False,       1,        True,     'F'     ),
+                ('DT2K',       False,       1,        True,     'F'     ),
+                ('HT3K',       False,       1,        True,     'F'     ),
+                ('HT4K',       False,       1,        True,     'F'     ),
+                ('HT5K',       False,       1,        True,     'F'     ),
+                ('HT6K',       False,       1,        True,     'F'     ),
+                ('HT7.26K',    False,       1,        True,     'F'     ),
+                ('WT5.45K',    False,       1,        True,     'F'     ),
+                ('WT7.26K',    False,       1,        True,     'F'     ),
+                ('WT9.08K',    False,       1,        True,     'F'     ),
+                ('WT11.34K',   False,       1,        True,     'F'     ),
+                ('JT400',      False,       1,        True,     'F'     ),
+                ('JT500',      False,       1,        True,     'F'     ),
+                ('JT600',      False,       1,        True,     'F'     ),
+                ('JT600PRE86', False,       1,        False,    'F'    ), # Invented here for historical records
+                ('JT600PRE99', False,       1,        False,    'F'    ), # Invented here for historical records
+                ('JT700',      False,       1,        True,     'F'     ),
+                ('JT800',      False,       1,        True,     'F'     ),
+                ('JT800PRE86', False,       1,        False,    'F'    ), # Invented here for historical records
+                ('Minithon',   False,       1,        False,    'M'    ), # from C&C club records but not in Po10
+                ('Oct',        False,       1,        False,    'M'    ), # from C&C club records but not in Po10
+                ('PenU13W',    False,       1,        True,     'M'     ),
+                ('PenU13M',    False,       1,        True,     'M'     ),
+                ('PenU15W',    False,       1,        True,     'M'     ),
+                ('PenU15M',    False,       1,        True,     'M'     ),
+                ('PenU17W',    False,       1,        True,     'M'     ),
+                ('PenU17M',    False,       1,        True,     'M'     ),
+                ('PenU20M',    False,       1,        True,     'M'     ),
+                ('PenW',       False,       1,        True,     'M'     ),
+                ('PenIM35',    False,       1,        True,     'M'     ),
+                ('PenIM40',    False,       1,        True,     'M'     ),
+                ('PenWtM40',   False,       1,        True,     'M'     ),
+                ('PenWtM45',   False,       1,        True,     'M'     ),
+                ('PenWtM55',   False,       1,        True,     'M'     ),
+                ('PenWtW60',   False,       1,        True,     'M'     ),
+                ('PenWtM60',   False,       1,        True,     'M'     ),
+                ('HepW',       False,       1,        True,     'M'     ),
+                ('HepU17W',    False,       1,        True,     'M'     ),
+                ('Dec',        False,       1,        True,     'M'     )
  ]
 
 known_events_lookup = {}
-for (event, smaller_better, numbers, runbritain) in known_events:
-    known_events_lookup[event] = (smaller_better, numbers, runbritain)
+for (event, smaller_better, numbers, runbritain, type) in known_events:
+    known_events_lookup[event] = (smaller_better, numbers, runbritain, type)
 
 # PowerOf10 age categories (usable on club page)
 powerof10_categories = ['ALL', 'U13', 'U15', 'U17', 'U20']
@@ -306,7 +306,15 @@ def construct_performance(event, gender, category, perf, name, url, date, fixtur
     return perf
 
 
-def process_performance(perf):
+def process_performance(perf, types):
+
+    known_event = known_events_lookup.get(perf.event)
+    if not known_event:
+        print(f'Event not in known events: {event}')
+        return
+    if known_event[3] not in types:
+        # e.g. Track event but only want Road
+        return
     if perf.category not in record:
         record[perf.category] = {}
     if perf.event not in record[perf.category]:
@@ -394,7 +402,7 @@ def process_performance(perf):
         del record_list[max_records :]
 
 
-def process_one_rankings_table(rows, gender, category, source, perf_list):
+def process_one_rankings_table(rows, gender, category, source, perf_list, types):
     state = "seeking_title"
     row_idx = 0
     while True:
@@ -442,7 +450,7 @@ def process_one_rankings_table(rows, gender, category, source, perf_list):
 
 
 def process_one_po10_year_gender(club_id, year, gender, category, performance_cache,
-                                  rebuild_cache, first_claim_only):
+                                  rebuild_cache, first_claim_only, types):
 
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : category,
@@ -488,14 +496,14 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
             if 'class' not in rows[1].attribs or rows[1].attribs['class'] != 'rankinglistheadings':
                 continue
             # Looks like we've found the table of results
-            process_one_rankings_table(rows, gender, category, source, perf_list)
+            process_one_rankings_table(rows, gender, category, source, perf_list, types)
 
         performance_cache[cache_key] = perf_list
     else:
         print(report_string_base + f'{len(perf_list)} performances from cache')
 
     for perf in perf_list:
-        process_performance(perf)
+        process_performance(perf, types)
         performance_count['Po10'] += 1
 
 
@@ -510,7 +518,7 @@ def make_cache_key(url, request_params):
 
 
 def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache,
-                                        rebuild_cache, first_claim_only):
+                                        rebuild_cache, first_claim_only, types):
 
     request_params = {'clubid'         : str(club_id),
                       'sex'            : gender,
@@ -541,7 +549,11 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
 
     if perf_list is None:
         perf_list = []
-        page_response = requests.get(runbritain_root_url + '/rankings/rankinglist.aspx', request_params)
+        try:
+            page_response = requests.get(runbritain_root_url + '/rankings/rankinglist.aspx', request_params)
+        except requests.exceptions.ConnectionError:
+            print(report_string_base + ' ConnectionError')
+            return
 
         print(report_string_base + f'page return status {page_response.status_code}')
 
@@ -581,7 +593,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
         print(report_string_base + f'{len(perf_list)} performances from cache')
     
     for perf in perf_list:
-        process_performance(perf)
+        process_performance(perf, types)
         performance_count['Runbritain'] += 1
 
 
@@ -650,7 +662,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 contents_part.append('<br />\n')
             contents_part.append(f'<b><a href="#{anchor}">{subtitle}</a></b><br />\n')
             bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
-            for (event, _, _, _) in known_events:
+            for (event, _, _, _, _) in known_events:
                 if event not in record[category]: continue
                 record_list = record[category][event].get(gender)
                 if not record_list: continue
@@ -696,7 +708,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 fd.write(line)
 
 
-def process_one_input_file(input_file):
+def process_one_input_file(input_file, types):
 
     print(f'Processing file: {input_file}')
 
@@ -707,10 +719,10 @@ def process_one_input_file(input_file):
     
     workbook = openpyxl.load_workbook(filename=input_file)
     for worksheet in workbook.worksheets:
-        process_one_excel_worksheet(input_file, worksheet)
+        process_one_excel_worksheet(input_file, worksheet, types)
 
 
-def process_one_excel_worksheet(input_file, worksheet):
+def process_one_excel_worksheet(input_file, worksheet, types):
 
     print(f'Processing worksheet: {worksheet.title}')
     df = pandas.DataFrame(worksheet.values)
@@ -817,17 +829,18 @@ def process_one_excel_worksheet(input_file, worksheet):
             continue
         perf = construct_performance(event, gender, category, perf, name, name_url,
                             date, fixture, fixture_url, input_file + ':' + worksheet.title)
-        process_performance(perf)
+        process_performance(perf, types)
         performance_count['File(s)'] += 1
 
 
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
          do_po10=False, do_runbritain=True, input_files=[],
-         cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False):
+         cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False,
+         types=['T', 'F', 'R', 'M']):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
-        process_one_input_file(input_file)
+        process_one_input_file(input_file, types)
 
     # Retrieve cache of performances obtained from web trawl previously
     try:
@@ -844,13 +857,16 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023
             if do_po10:
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category,
-                                                 performance_cache, rebuild_cache, first_claim_only)
+                                                 performance_cache, rebuild_cache, first_claim_only,
+                                                 types)
             if do_runbritain:
-                for (event, _, _, runbritain) in known_events: # debug [('Mar', True, 3, True)]:
+                for (event, _, _, runbritain, type) in known_events: # debug [('Mar', True, 3, True, 'R')]:
                     if not runbritain: continue
+                    if type not in types: continue
                     for (category, _, _) in runbritain_categories: # debug [('ALL', 0, 0), ('V50', 50, 54)]
                         process_one_runbritain_year_gender(club_id, year, gender, category, event,
-                                                            performance_cache, rebuild_cache, first_claim_only)
+                                                           performance_cache, rebuild_cache,
+                                                           first_claim_only, types)
 
     # Save updated cache for next time
     try:
@@ -882,15 +898,24 @@ if __name__ == '__main__':
     parser.add_argument('--cache', dest='cache_filename', default='cache.pkl')
     parser.add_argument('--rebuild-last-year', dest='rebuild_last_year',  choices=yes_no_choices, default='n')
     parser.add_argument('--first-claim-only', dest='first_claim_only',  choices=yes_no_choices, default='n')
+    parser.add_argument('--track', dest='track',  choices=yes_no_choices, default='y')
+    parser.add_argument('--field', dest='field',  choices=yes_no_choices, default='y')
+    parser.add_argument('--road', dest='road',  choices=yes_no_choices, default='y')
+    parser.add_argument('--multievent', dest='multievent',  choices=yes_no_choices, default='y')
 
     args = parser.parse_args()
 
-    do_po10 = args.do_po10.lower().startswith('y')
-    do_runbritain = args.do_runbritain.lower().startswith('y')
+    do_po10           = args.do_po10.lower().startswith('y')
+    do_runbritain     = args.do_runbritain.lower().startswith('y')
     rebuild_last_year = args.rebuild_last_year.lower().startswith('y')
-    first_claim_only = args.first_claim_only.lower().startswith('y')
+    first_claim_only  = args.first_claim_only.lower().startswith('y')
+    types = []
+    if args.track.lower().startswith('y'):      types.append('T')
+    if args.field.lower().startswith('y'):      types.append('F')
+    if args.road.lower().startswith('y'):       types.append('R')
+    if args.multievent.lower().startswith('y'): types.append('M')
 
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
          input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year,
-         first_claim_only=first_claim_only)
+         first_claim_only=first_claim_only, types=types)
