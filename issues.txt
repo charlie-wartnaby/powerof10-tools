@@ -3,6 +3,11 @@ Find examples where club record not aligned with Po10/RB extraction
 o Age group boundary e.g. Adelaide TJ
  - TJ W U15 Po10 has 10.91m for AO, not in club records
  - TJ W U17 CnC has 12.30m for AO from 2017, but Po10 has this as U20: https://thepowerof10.info/results/results.aspx?meetingid=189039&event=TJ&venue=Birmingham&date=7-Jul-17
+ - Born 2 months before C's bday
+Age group explanation:
+https://www.thepowerof10.info/content/itemdisplay.aspx?itemid=1685&fbclid=IwAR0siNZw6XBJpO6715kwF9347mVhMs64fY5fo5SRmEzge6ku-Ihs9FIU8sk
+Now using runbritain age groups for youth records but still have that anomaly at least
+
 o Wind-assisted example?
 o 1st/2nd claim example?
 

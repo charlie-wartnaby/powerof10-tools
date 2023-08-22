@@ -184,12 +184,12 @@ powerof10_categories = ['ALL', 'U13', 'U15', 'U17', 'U20']
 # Otherwise use age range as runbritain skips some results if use category name, oddly.
 runbritain_categories = [ # name       min  max years old
                           ('ALL',        0,    0),
-                          ('Disability', 0,    0),
-                          ('U13',        1,   12),
-                          ('U15',        13,  14),
-                          ('U17',        15,  16),
-                          ('U20',        17,  19),
-                          ('U23',        20,  22),
+                          # ('Disability', 0,    0),     # Runbritain category but always zero results
+                          ('U13',        0,    0), # 1,   12), # Using official season age groups for juniors...
+                          ('U15',        0,    0), # 13,  14), # ... could make it different for road/parkruns?
+                          ('U17',        0,    0), # 15,  16),
+                          ('U20',        0,    0), # 17,  19),
+                          ('U23',        0,    0), # 20,  22),
                           # Skipping senior as have all-age records
                           ('V35',        35,  39),
                           ('V40',        40,  44),
