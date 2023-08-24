@@ -376,23 +376,28 @@ def process_performance(perf, types):
             record_list.append([perf])
             record_list.sort(key=lambda x: x[0].score, reverse=not smaller_score_better)
 
-        # Ensure one name only appears with their top score
-        athlete_names = {}
-        lowest_rec_idx_for_this_name = len(record_list)
+        # Ensure new name only appears with their top score
+        lowest_rec_idx_for_this_name = len(record_list) # i.e. not found yet
+        if perf.athlete_name == "Hollie Parker" and perf.event == "1M":
+            bpt=1
         rec_idx = 0
         while rec_idx < len(record_list):
             perf_idx = 0
             while perf_idx < len(record_list[rec_idx]):
                 existing_record_name = record_list[rec_idx][perf_idx].athlete_name
-                if existing_record_name in athlete_names and rec_idx > lowest_rec_idx_for_this_name:
-                    # Avoid same person appearing multiple times, allowing for ties,
-                    # but nice to show multiple sources for identical performance
-                    del record_list[rec_idx][perf_idx]
-                else:
-                    athlete_names[existing_record_name] = True
-                    if rec_idx < lowest_rec_idx_for_this_name:
+                if existing_record_name == perf.athlete_name:
+                    if rec_idx > lowest_rec_idx_for_this_name:
+                        # Avoid same person appearing multiple times, allowing for ties,
+                        # but nice to show multiple sources for identical performance
+                        del record_list[rec_idx][perf_idx]
+                        continue
+                    elif rec_idx < lowest_rec_idx_for_this_name:
+                        # Found best performance by this name so far
                         lowest_rec_idx_for_this_name = rec_idx
-                    perf_idx += 1
+                    else:
+                        # Someone else, ignore
+                        pass
+                perf_idx += 1
             if not record_list[rec_idx]:
                 # Usual case after a deletion: no tie, that score was for only one athlete
                 del record_list[rec_idx]
