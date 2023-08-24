@@ -21,7 +21,7 @@ if sys.version_info.minor < 6:
 
 class Performance():
     def __init__(self, event, score, category, gender, original_special, decimal_places, athlete_name, athlete_url='', date='',
-                       fixture_name='', fixture_url='', source=''):
+                       fixture_name='', fixture_url='', source='', wava=0):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
         self.category = category # e.g. U20 or ALL
@@ -34,6 +34,8 @@ class Performance():
         self.fixture_name = fixture_name
         self.fixture_url = fixture_url
         self.source = source
+        # Added later to support marathon WAVA list, cached performances may not have:
+        self.wava = wava
 
 class HtmlBlock():
     def __init__(self, tag=''):
@@ -41,9 +43,13 @@ class HtmlBlock():
         self.inner_text = ''
         self.attribs = {}
 
-record = {} # dict of age groups, each dict of events, each dict of genders, then ordered list of performances
+record = {} # dict of age groups, each dict of events, each dict of genders, then ordered list of performance lists (allowing for ties)
+marathon = {} # dict of years and 0 for all years, then ordered list of performance lists (to allow for ties)
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_regords_age_group = 3 # Similarly per age group
+max_marathons_all = 20  # All-time WAVA list
+max_marathons_year = 10 # WAVA list for specific year
+
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
 
@@ -307,7 +313,9 @@ def construct_performance(event, gender, category, perf, name, url, date, fixtur
 
 
 def process_performance(perf, types):
-
+    """Add performance to overall and category record tables if appropriate,
+      while respecting the max size of those tables"""
+    
     known_event = known_events_lookup.get(perf.event)
     if not known_event:
         print(f'Event not in known events: {event}')
@@ -406,6 +414,39 @@ def process_performance(perf, types):
         # Keep list at max required length 
         del record_list[max_records :]
 
+def process_po10_wava(perf, performance_cache, rebuild_cache):
+    """Add a marathon performance to WAVA tables, respecting max size"""
+
+    athlete_id_match = re.search(r'athleteid=([0-9]+)', perf.athlete_url)
+    athlete_id = athlete_id_match.group(1)
+
+    request_params = {'athleteid'   : athlete_id,
+                      'viewby'      : 'agegraded'}
+
+    url = powerof10_root_url + '/athletes/profile.aspx'
+    cache_key = make_cache_key(url, request_params)
+    if rebuild_cache:
+        perf_list = None
+    else:
+        perf_list = performance_cache.get(cache_key, None)
+
+    report_string_base = f'PowerOf10 WAVA for {perf.athlete_name} ID {athlete_id} '
+    if perf_list is None:
+        perf_list = []
+        try:
+            page_response = requests.get(url, request_params)
+        except requests.exceptions.ConnectionError:
+            print(report_string_base + ' ConnectionError')
+            return
+
+        print(report_string_base + f'page return status {page_response.status_code}')
+
+        if page_response.status_code != 200:
+            print(f'HTTP error code fetching page: {page_response.status_code}')
+            return
+
+        input_text = page_response.text
+        pass
 
 def process_one_rankings_table(rows, gender, category, source, perf_list, types):
     state = "seeking_title"
@@ -474,8 +515,11 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
     report_string_base = f'PowerOf10 club {club_id} year {year} gender {gender} category {category} '
     if perf_list is None:
         perf_list = []
-
-        page_response = requests.get(url, request_params)
+        try:
+            page_response = requests.get(url, request_params)
+        except requests.exceptions.ConnectionError:
+            print(report_string_base + ' ConnectionError')
+            return
 
         print(report_string_base + f'page return status {page_response.status_code}')
 
@@ -509,6 +553,8 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
 
     for perf in perf_list:
         process_performance(perf, types)
+        if perf.event == 'Mar':  # C&C trophy category but could do other events
+            process_po10_wava(perf, performance_cache, rebuild_cache)
         performance_count['Po10'] += 1
 
 
@@ -555,7 +601,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
     if perf_list is None:
         perf_list = []
         try:
-            page_response = requests.get(runbritain_root_url + '/rankings/rankinglist.aspx', request_params)
+            page_response = requests.get(url, request_params)
         except requests.exceptions.ConnectionError:
             print(report_string_base + ' ConnectionError')
             return
