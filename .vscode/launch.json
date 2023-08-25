@@ -13,7 +13,8 @@
                     "--lastyear", "2023",
                     "--track", "n",
                     "--field", "n",
-                    "--multievent", "n"]
+                    "--multievent", "n",
+                    "--wava", "y"]
         }
     ]
 }

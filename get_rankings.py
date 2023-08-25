@@ -57,6 +57,8 @@ performance_count = {'Po10'       : 0,
                      'Runbritain' : 0,
                      'File(s)'    : 0}
 
+wava_events = ['Mar']  # C&C trophy category but could do other events
+
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
 #                event, small-is-good, :-numbers, runbritain,  Track/Field/Road/Multievent
@@ -496,7 +498,7 @@ def process_one_rankings_table(rows, gender, category, source, perf_list, types)
 
 
 def process_one_po10_year_gender(club_id, year, gender, category, performance_cache,
-                                  rebuild_cache, first_claim_only, types):
+                                  rebuild_cache, first_claim_only, types, do_wava):
 
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : category,
@@ -553,9 +555,9 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
 
     for perf in perf_list:
         process_performance(perf, types)
-        if perf.event == 'Mar':  # C&C trophy category but could do other events
-            process_po10_wava(perf, performance_cache, rebuild_cache)
         performance_count['Po10'] += 1
+        if do_wava and perf.event in wava_events:
+            process_po10_wava(perf, performance_cache, rebuild_cache)
 
 
 def make_cache_key(url, request_params):
@@ -887,7 +889,7 @@ def process_one_excel_worksheet(input_file, worksheet, types):
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
          do_po10=False, do_runbritain=True, input_files=[],
          cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False,
-         types=['T', 'F', 'R', 'M']):
+         types=['T', 'F', 'R', 'M'], do_wava=True):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
@@ -909,7 +911,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category,
                                                  performance_cache, rebuild_cache, first_claim_only,
-                                                 types)
+                                                 types, do_wava)
             if do_runbritain:
                 for (event, _, _, runbritain, type) in known_events: # debug [('Mar', True, 3, True, 'R')]:
                     if not runbritain: continue
@@ -953,6 +955,7 @@ if __name__ == '__main__':
     parser.add_argument('--field', dest='field',  choices=yes_no_choices, default='y')
     parser.add_argument('--road', dest='road',  choices=yes_no_choices, default='y')
     parser.add_argument('--multievent', dest='multievent',  choices=yes_no_choices, default='y')
+    parser.add_argument('--wava', dest='wava',  choices=yes_no_choices, default='n')
 
     args = parser.parse_args()
 
@@ -960,6 +963,7 @@ if __name__ == '__main__':
     do_runbritain     = args.do_runbritain.lower().startswith('y')
     rebuild_last_year = args.rebuild_last_year.lower().startswith('y')
     first_claim_only  = args.first_claim_only.lower().startswith('y')
+    do_wava           = args.wava.lower().startswith('y')
     types = []
     if args.track.lower().startswith('y'):      types.append('T')
     if args.field.lower().startswith('y'):      types.append('F')
@@ -969,4 +973,4 @@ if __name__ == '__main__':
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
          input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year,
-         first_claim_only=first_claim_only, types=types)
+         first_claim_only=first_claim_only, types=types, do_wava=do_wava)
