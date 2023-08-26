@@ -21,7 +21,7 @@ if sys.version_info.minor < 6:
 
 class Performance():
     def __init__(self, event, score, category, gender, original_special, decimal_places, athlete_name, athlete_url='', date='',
-                       fixture_name='', fixture_url='', source='', wava=0.0):
+                       fixture_name='', fixture_url='', source='', wava=0.0, age=0):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
         self.category = category # e.g. U20 or ALL
@@ -36,6 +36,7 @@ class Performance():
         self.source = source
         # Added later to support marathon WAVA list, cached performances may not have:
         self.wava = wava
+        self.age = age
 
 class HtmlBlock():
     def __init__(self, tag=''):
@@ -309,11 +310,11 @@ def make_numeric_score_from_performance_string(perf):
 
 
 def construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url,
-                          source, age_grade='0.0'):
+                          source, age_grade='0.0', age=0):
     score, original_dp, original_special = make_numeric_score_from_performance_string(perf)
     wava = float(age_grade)
     perf = Performance(event, score, category, gender, original_special, original_dp, name, url, 
-                        date, fixture_name, fixture_url, source, wava=wava)
+                        date, fixture_name, fixture_url, source, wava=wava, age=age)
     return perf
 
 
@@ -536,10 +537,12 @@ def process_one_athlete_results_table(example_perf, rows, perf_list):
         if not age_grade:
             # Could be multiterrain or XC or something, though should be excluded by event type anyway
             continue
+        age_str = cells[heading_idx['Age']].inner_text.strip()
+        age = 0 if not age_str else int(age_str)
         source = 'Po10'
         perf = construct_performance(event, example_perf.gender, 'ALL', performance, 
                                      example_perf.athlete_name, example_perf.athlete_url,
-                                     date, fixture_name, fixture_url, source, age_grade=age_grade)
+                                     date, fixture_name, fixture_url, source, age_grade=age_grade, age=age)
         perf_list.append(perf)
 
 
@@ -862,7 +865,7 @@ def output_record_table(bulk_part, event, record_list, type):
     bulk_part.append('<tr>\n')
     bulk_part.append('<td><center><b>Rank</b></center></td>')
     if type == 'wava':
-        bulk_part.append('<td><center><b>Age Grade %</b></center></td>')
+        bulk_part.append('<td><center><b>Age Grade %</b></center></td><td><center><b>Age</b></center></td>')
     bulk_part.append('<td><center><b>Performance</b></center></td><td><center><b>Athlete</b></center></td><td><center><b>Date</b></center></td><td><center><b>Fixture</b></center><td><center><b>Source</b></center></td>\n')
     bulk_part.append('</tr>\n')
     for idx, perf_list in enumerate(record_list):
@@ -877,6 +880,7 @@ def output_record_table(bulk_part, event, record_list, type):
             if type == 'wava':
                 wava_str = '%.2f' % perf.wava
                 bulk_part.append(f'  <td><center>{wava_str}</td>\n')
+                bulk_part.append(f'  <td><center>{perf.age}</td>\n')
             bulk_part.append(f'  <td><center>{score_str}</td>\n')
             if perf.athlete_url:
                 bulk_part.append(f'  <td><a href="{perf.athlete_url}">{perf.athlete_name}</a></td>\n')
