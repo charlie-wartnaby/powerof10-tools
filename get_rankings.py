@@ -44,11 +44,12 @@ class HtmlBlock():
         self.attribs = {}
 
 record = {} # dict of age groups, each dict of events, each dict of genders, then ordered list of performance lists (allowing for ties)
-marathon = {} # dict of years and 0 for all years, then ordered list of performance lists (to allow for ties)
+wava = {} # dict of events, each dict of years and 0 for all years, then ordered list of performance lists (to allow for ties)
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_regords_age_group = 3 # Similarly per age group
-max_marathons_all = 20  # All-time WAVA list
-max_marathons_year = 10 # WAVA list for specific year
+max_wavas_all = 20  # All-time WAVA list
+max_wavas_year = 10 # WAVA list for specific year
+wava_athlete_ids_done = {}
 
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
@@ -316,7 +317,7 @@ def construct_performance(event, gender, category, perf, name, url, date, fixtur
     return perf
 
 
-def process_performance(perf, types):
+def process_performance(perf, types, collection_choice, year='ALL'):
     """Add performance to overall and category record tables if appropriate,
       while respecting the max size of those tables"""
     
@@ -327,42 +328,51 @@ def process_performance(perf, types):
     if known_event[3] not in types:
         # e.g. Track event but only want Road
         return
-    if perf.category not in record:
-        record[perf.category] = {}
-    if perf.event not in record[perf.category]:
-        # First occurrence of this event so start new
-        record[perf.category][perf.event] = {}
-    if perf.gender not in record[perf.category][perf.event]:
-        # First performance by this gender in this event so start new list
-        record[perf.category][perf.event][perf.gender] = []
+    if collection_choice == 'record':
+        collection = record
+        if perf.category not in collection:
+            collection[perf.category] = {}
+        if perf.event not in collection[perf.category]:
+            # First occurrence of this event so start new
+            collection[perf.category][perf.event] = {}
+        if perf.gender not in collection[perf.category][perf.event]:
+            # First performance by this gender in this event so start new list
+            collection[perf.category][perf.event][perf.gender] = []
+        record_list = record[perf.category][perf.event][perf.gender]
+        max_records = max_records_all if perf.category == 'ALL' else max_regords_age_group
+        smaller_score_better = known_events_lookup[perf.event][0]
+        compare_field = 'score'
+    else:
+        collection = wava
+        if perf.event not in collection:
+            collection[perf.event] = {}
+        if year not in collection[perf.event]:
+            collection[perf.event][year] = []
+        record_list = collection[perf.event][year]
+        max_records = max_wavas_all if year == 'ALL' else max_wavas_year
+        smaller_score_better = False # WAVA bigger the better always
+        compare_field = 'wava'
 
-    if perf.event not in known_events_lookup:
-        print(f'WARNING: unknown event {perf.event}, ignoring')
-        return
-    smaller_score_better = known_events_lookup[perf.event][0]
 
-    max_records = max_records_all if perf.category == 'ALL' else max_regords_age_group
-
-    record_list = record[perf.category][perf.event][perf.gender]
     add_record = False
     if len(record_list) < max_records:
         # We don't have enough records for this event yet so add
         add_record = True
     else:
-        prev_worst_score = record_list[-1][0].score
+        prev_worst_score = getattr(record_list[-1][0], compare_field)
         # For a tie, now adding new record, as club records sometimes showed two
         # record-holders; and a chance to line up data from different sources in
         # the output to show agreement where they match
         if smaller_score_better:
-            if perf.score <= prev_worst_score: add_record = True
+            if getattr(perf, compare_field) <= prev_worst_score: add_record = True
         else:
-            if perf.score >= prev_worst_score: add_record = True
+            if getattr(perf, compare_field) >= prev_worst_score: add_record = True
 
     if add_record:
         same_score_seen = False
         tie_same_name_managed = False
         for existing_perf_list in record_list:
-            if existing_perf_list[0].score == perf.score:
+            if getattr(existing_perf_list[0], compare_field) == getattr(perf, compare_field):
                 same_score_seen = True
                 # Same record with different source, or a tie with new person
                 # Prefer Po10 over Runbritain, and don't include both as share source data
@@ -386,12 +396,10 @@ def process_performance(perf, types):
                 break
         if not same_score_seen:
             record_list.append([perf])
-            record_list.sort(key=lambda x: x[0].score, reverse=not smaller_score_better)
+            record_list.sort(key=lambda x: getattr(x[0], compare_field), reverse=not smaller_score_better)
 
         # Ensure new name only appears with their top score
         lowest_rec_idx_for_this_name = len(record_list) # i.e. not found yet
-        if perf.athlete_name == "Hollie Parker" and perf.event == "1M":
-            bpt=1
         rec_idx = 0
         while rec_idx < len(record_list):
             perf_idx = 0
@@ -418,11 +426,16 @@ def process_performance(perf, types):
         # Keep list at max required length 
         del record_list[max_records :]
 
-def process_po10_wava(perf, performance_cache, rebuild_cache):
+
+def process_po10_wava(perf, performance_cache, rebuild_cache, types):
     """Add a marathon performance to WAVA tables, respecting max size"""
 
     athlete_id_match = re.search(r'athleteid=([0-9]+)', perf.athlete_url)
     athlete_id = athlete_id_match.group(1)
+    if athlete_id in wava_athlete_ids_done:
+        return
+    else:
+        wava_athlete_ids_done[athlete_id] = True
 
     request_params = {'athleteid'   : athlete_id,
                       'viewby'      : 'agegraded'}
@@ -482,7 +495,17 @@ def process_po10_wava(perf, performance_cache, rebuild_cache):
         print(report_string_base + f'{len(perf_list)} performances from cache')
 
     for perf in perf_list:
-        process_performance(perf, types)
+        year = get_year_from_po10_date(perf.date)
+        process_performance(perf, types, 'wava', 'ALL')
+        process_performance(perf, types, 'wava', str(year))
+
+
+def get_year_from_po10_date(date_str):
+    parts = date_str.split(' ')
+    year_str = parts[2]
+    year = int(year_str)
+    year += 2000 # No Po10 results before this
+    return year
 
 
 def process_one_athlete_results_table(example_perf, rows, perf_list):
@@ -509,7 +532,10 @@ def process_one_athlete_results_table(example_perf, rows, perf_list):
         anchor = get_html_content(venue_link.inner_text, 'a')
         fixture_name = anchor[0].inner_text
         fixture_url = powerof10_root_url + anchor[0].attribs["href"]
-        age_grade = cells[heading_idx['AGrade']].inner_text
+        age_grade = cells[heading_idx['AGrade']].inner_text.strip()
+        if not age_grade:
+            # Could be multiterrain or XC or something, though should be excluded by event type anyway
+            continue
         source = 'Po10'
         perf = construct_performance(event, example_perf.gender, 'ALL', performance, 
                                      example_perf.athlete_name, example_perf.athlete_url,
@@ -621,10 +647,10 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
         print(report_string_base + f'{len(perf_list)} performances from cache')
 
     for perf in perf_list:
-        process_performance(perf, types)
+        process_performance(perf, types, 'record')
         performance_count['Po10'] += 1
         if do_wava and perf.event in wava_events:
-            process_po10_wava(perf, performance_cache, rebuild_cache)
+            process_po10_wava(perf, performance_cache, rebuild_cache, types)
 
 
 def make_cache_key(url, request_params):
@@ -713,7 +739,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
         print(report_string_base + f'{len(perf_list)} performances from cache')
     
     for perf in perf_list:
-        process_performance(perf, types)
+        process_performance(perf, types, 'record')
         performance_count['Runbritain'] += 1
 
 
@@ -949,7 +975,7 @@ def process_one_excel_worksheet(input_file, worksheet, types):
             continue
         perf = construct_performance(event, gender, category, perf, name, name_url,
                             date, fixture, fixture_url, input_file + ':' + worksheet.title)
-        process_performance(perf, types)
+        process_performance(perf, types, 'record')
         performance_count['File(s)'] += 1
 
 
