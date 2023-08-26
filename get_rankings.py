@@ -21,7 +21,7 @@ if sys.version_info.minor < 6:
 
 class Performance():
     def __init__(self, event, score, category, gender, original_special, decimal_places, athlete_name, athlete_url='', date='',
-                       fixture_name='', fixture_url='', source='', wava=0):
+                       fixture_name='', fixture_url='', source='', wava=0.0):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
         self.category = category # e.g. U20 or ALL
@@ -307,10 +307,12 @@ def make_numeric_score_from_performance_string(perf):
     return total_score, decimal_places, original_special
 
 
-def construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source):
+def construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url,
+                          source, age_grade='0.0'):
     score, original_dp, original_special = make_numeric_score_from_performance_string(perf)
+    wava = float(age_grade)
     perf = Performance(event, score, category, gender, original_special, original_dp, name, url, 
-                        date, fixture_name, fixture_url, source)
+                        date, fixture_name, fixture_url, source, wava=wava)
     return perf
 
 
@@ -448,7 +450,72 @@ def process_po10_wava(perf, performance_cache, rebuild_cache):
             return
 
         input_text = page_response.text
-        pass
+        tables = get_html_content(input_text, 'table')
+        second_level_tables = []
+        for table in tables:
+            nested_tables = get_html_content(table.inner_text, 'table')
+            second_level_tables.extend(nested_tables)
+        third_level_tables = []
+        for table in second_level_tables:
+            nested_tables = get_html_content(table.inner_text, 'table')
+            third_level_tables.extend(nested_tables)
+        fourth_level_tables = []
+        for table in third_level_tables:
+            nested_tables = get_html_content(table.inner_text, 'table')
+            fourth_level_tables.extend(nested_tables)
+        all_tables = tables
+        all_tables.extend(second_level_tables)
+        all_tables.extend(third_level_tables)
+        all_tables.extend(fourth_level_tables) # Think it is actually in here
+
+        for table in all_tables:
+            if 'class' not in table.attribs or table.attribs['class'] != 'alternatingrowspanel':
+                continue
+            rows = get_html_content(table.inner_text, 'tr')
+            if len(rows) < 2:
+                continue
+            # Looks like we've found the table of results
+            process_one_athlete_results_table(perf, rows, perf_list)
+
+        performance_cache[cache_key] = perf_list
+    else:
+        print(report_string_base + f'{len(perf_list)} performances from cache')
+
+    for perf in perf_list:
+        process_performance(perf, types)
+
+
+def process_one_athlete_results_table(example_perf, rows, perf_list):
+
+    heading_row = rows.pop(0)
+    cells = get_html_content(heading_row.inner_text, 'td')
+    heading_idx = {}
+    for i, cell in enumerate(cells):
+        heading = debold(cell.inner_text)
+        heading_idx[heading] = i
+    for expected_heading in ['Event', 'Perf', 'AGrade', 'Age', 'Venue', 'Date']:
+        if expected_heading not in heading_idx:
+            print(f'WARNING: missing expected heading {expected_heading}, skipped')
+            return
+        
+    for row in rows:
+        cells = get_html_content(row.inner_text, 'td')
+        event = cells[heading_idx['Event']].inner_text
+        if event not in wava_events:
+            continue
+        performance = cells[heading_idx['Perf']].inner_text
+        date = cells[heading_idx['Date']].inner_text
+        venue_link = cells[heading_idx['Venue']]
+        anchor = get_html_content(venue_link.inner_text, 'a')
+        fixture_name = anchor[0].inner_text
+        fixture_url = powerof10_root_url + anchor[0].attribs["href"]
+        age_grade = cells[heading_idx['AGrade']].inner_text
+        source = 'Po10'
+        perf = construct_performance(event, example_perf.gender, 'ALL', performance, 
+                                     example_perf.athlete_name, example_perf.athlete_url,
+                                     date, fixture_name, fixture_url, source, age_grade=age_grade)
+        perf_list.append(perf)
+
 
 def process_one_rankings_table(rows, gender, category, source, perf_list, types):
     state = "seeking_title"
@@ -483,13 +550,13 @@ def process_one_rankings_table(rows, gender, category, source, perf_list, types)
                     anchor = get_html_content(name_link.inner_text, 'a')
                     name = anchor[0].inner_text
                     url = powerof10_root_url + anchor[0].attribs["href"]
-                    perf = cells[heading_idx['Perf']].inner_text
+                    performance = cells[heading_idx['Perf']].inner_text
                     date = cells[heading_idx['Date']].inner_text
                     venue_link = cells[heading_idx['Venue']]
                     anchor = get_html_content(venue_link.inner_text, 'a')
                     fixture_name = anchor[0].inner_text
                     fixture_url = powerof10_root_url + anchor[0].attribs["href"]
-                    perf = construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
+                    perf = construct_performance(event, gender, category, performance, name, url, date, fixture_name, fixture_url, source)
                     perf_list.append(perf)
         else:
             # unknown state
