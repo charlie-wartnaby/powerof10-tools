@@ -801,7 +801,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     first_content = True
 
     year_keys = ['ALL']
-    for year in range(first_year, last_year + 1):
+    for year in range(last_year, first_year - 1, -1):
         year_keys.append(str(year))
 
     for event in wava_events:
@@ -1090,7 +1090,7 @@ if __name__ == '__main__':
     parser.add_argument('--field', dest='field',  choices=yes_no_choices, default='y')
     parser.add_argument('--road', dest='road',  choices=yes_no_choices, default='y')
     parser.add_argument('--multievent', dest='multievent',  choices=yes_no_choices, default='y')
-    parser.add_argument('--wava', dest='wava',  choices=yes_no_choices, default='n')
+    parser.add_argument('--wava', dest='wava',  choices=yes_no_choices, default='y')
 
     args = parser.parse_args()
 

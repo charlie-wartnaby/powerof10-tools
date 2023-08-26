@@ -20,3 +20,8 @@ road 10k should be erased or I've got some other times to give you from the US!
 Should have some means of restricting page requests for niche events to only
 those gender/age combinations where they're relevant, instead of trying them
 for all very wastefully and slowly
+
+Age grade problem currently: finds all performances for all years for athlete, even if no
+longer at club for which result first found.
+
+Invalidate WAVA cache needed too.
