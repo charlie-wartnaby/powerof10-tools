@@ -58,7 +58,7 @@ performance_count = {'Po10'       : 0,
                      'Runbritain' : 0,
                      'File(s)'    : 0}
 
-wava_events = ['Mar']  # C&C trophy category but could do other events
+wava_events = ['Mar', 'HM']  # C&C trophy category but could do other events
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
@@ -487,7 +487,7 @@ def process_po10_wava(perf, performance_cache, rebuild_cache, types):
             rows = get_html_content(table.inner_text, 'tr')
             if len(rows) < 2:
                 continue
-            # Looks like we've found the table of results
+            # Looks like we've found the table of results or something similar
             process_one_athlete_results_table(perf, rows, perf_list)
 
         performance_cache[cache_key] = perf_list
@@ -518,7 +518,7 @@ def process_one_athlete_results_table(example_perf, rows, perf_list):
         heading_idx[heading] = i
     for expected_heading in ['Event', 'Perf', 'AGrade', 'Age', 'Venue', 'Date']:
         if expected_heading not in heading_idx:
-            print(f'WARNING: missing expected heading {expected_heading}, skipped')
+            # Could be "UK Rankings" or "Athletes Coached" table, skip
             return
         
     for row in rows:
@@ -796,6 +796,34 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     bulk_part = []
 
     first_content = True
+
+    year_keys = ['ALL']
+    for year in range(first_year, last_year + 1):
+        year_keys.append(str(year))
+
+    anchor = 'wava_tables'
+    subtitle = 'WAVA Tables'
+    if first_content:
+        # Avoid big gap after Contents heading
+        first_content = False
+    else:
+        contents_part.append('<br />\n')
+    contents_part.append(f'<b><a href="#{anchor}">{subtitle}</a></b><br />\n')
+    bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+    for event in wava_events:
+        if event not in wava:
+            continue
+        anchor = f'wava_{event}'.lower()
+        subtitle = event
+        contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
+        bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
+        for year_key in year_keys:
+            if year_key not in wava[event]:
+                continue
+            record_list = wava[event][year_key]
+            bulk_part.append(f'<h4>Records for year: {year_key}</h4>\n\n')
+            output_record_table(bulk_part, event, record_list, 'wava')
+
     for (category, _, _) in runbritain_categories:
         if category not in record: continue
         for gender in ['W', 'M']:
@@ -816,32 +844,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 subtitle = f'{event} {gender} {category}'
                 contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
                 bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
-                bulk_part.append('<table border="2">\n')
-                bulk_part.append('<tr>\n')
-                bulk_part.append('<td><b>Rank</b></td><td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
-                bulk_part.append('</tr>\n')
-                for idx, perf_list in enumerate(record_list):
-                    for perf_idx, perf in enumerate(perf_list): # May be ties with same score or different sources
-                        if perf.original_special:
-                            score_str = perf.original_special
-                        else:
-                            score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
-                        bulk_part.append('<tr>\n')
-                        rank_str = f'{idx+1}' if perf_idx == 0 else ''
-                        bulk_part.append(f'  <td>{rank_str}</td>\n')
-                        bulk_part.append(f'  <td>{score_str}</td>\n')
-                        if perf.athlete_url:
-                            bulk_part.append(f'  <td><a href="{perf.athlete_url}">{perf.athlete_name}</a></td>\n')
-                        else:
-                            bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
-                        bulk_part.append(f'  <td>{perf.date}</td>\n')
-                        if perf.fixture_url:
-                            bulk_part.append(f'  <td><a href="{perf.fixture_url}">{perf.fixture_name}</a></td>\n')
-                        else:
-                            bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
-                        bulk_part.append(f'  <td>{perf.source}</td>\n')
-                        bulk_part.append('</tr>\n')
-                bulk_part.append('</table>\n\n')
+                output_record_table(bulk_part, event, record_list, 'record')
 
     contents_part.append('\n\n')
 
@@ -852,6 +855,40 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
         for part in [header_part, contents_part, bulk_part, tail_part]:
             for line in part:
                 fd.write(line)
+
+def output_record_table(bulk_part, event, record_list, type):
+    bulk_part.append('<table border="2">\n')
+    bulk_part.append('<tr>\n')
+    bulk_part.append('<td><b>Rank</b></td>')
+    if type == 'wava':
+        bulk_part.append('<td><b>WAVA %</b></td>')
+    bulk_part.append('<td><b>Performance</b></td><td><b>Athlete</b></td><td><b>Date</b></td><td><b>Fixture</b><td><b>Source</b></td>\n')
+    bulk_part.append('</tr>\n')
+    for idx, perf_list in enumerate(record_list):
+        for perf_idx, perf in enumerate(perf_list): # May be ties with same score or different sources
+            if perf.original_special:
+                score_str = perf.original_special
+            else:
+                score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
+            bulk_part.append('<tr>\n')
+            rank_str = f'{idx+1}' if perf_idx == 0 else ''
+            bulk_part.append(f'  <td>{rank_str}</td>\n')
+            if type == 'wava':
+                wava_str = '%.2f' % perf.wava
+                bulk_part.append(f'  <td>{wava_str}</td>\n')
+            bulk_part.append(f'  <td>{score_str}</td>\n')
+            if perf.athlete_url:
+                bulk_part.append(f'  <td><a href="{perf.athlete_url}">{perf.athlete_name}</a></td>\n')
+            else:
+                bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
+            bulk_part.append(f'  <td>{perf.date}</td>\n')
+            if perf.fixture_url:
+                bulk_part.append(f'  <td><a href="{perf.fixture_url}">{perf.fixture_name}</a></td>\n')
+            else:
+                bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
+            bulk_part.append(f'  <td>{perf.source}</td>\n')
+            bulk_part.append('</tr>\n')
+    bulk_part.append('</table>\n\n')
 
 
 def process_one_input_file(input_file, types):
