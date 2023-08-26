@@ -428,27 +428,31 @@ def process_performance(perf, types, collection_choice, year='ALL'):
         del record_list[max_records :]
 
 
-def process_po10_wava(perf, performance_cache, rebuild_cache, types):
+def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava):
     """Add a marathon performance to WAVA tables, respecting max size"""
 
-    athlete_id_match = re.search(r'athleteid=([0-9]+)', perf.athlete_url)
+    athlete_id_match = re.search(r'athleteid=([0-9]+)', reqd_perf.athlete_url)
     athlete_id = athlete_id_match.group(1)
-    if athlete_id in wava_athlete_ids_done:
-        return
-    else:
-        wava_athlete_ids_done[athlete_id] = True
 
     request_params = {'athleteid'   : athlete_id,
                       'viewby'      : 'agegraded'}
 
     url = powerof10_root_url + '/athletes/profile.aspx'
     cache_key = make_cache_key(url, request_params)
-    if rebuild_cache:
-        perf_list = None
-    else:
-        perf_list = performance_cache.get(cache_key, None)
 
-    report_string_base = f'PowerOf10 WAVA for {perf.athlete_name} ID {athlete_id} '
+    if athlete_id in wava_athlete_ids_done:
+        # We already have all performances for this athlete, even if cache rebuilt this time
+        use_cache = True
+    else:
+        use_cache = not rebuild_wava
+        wava_athlete_ids_done[athlete_id] = True
+
+    if use_cache:
+        perf_list = performance_cache.get(cache_key, None)
+    else:
+        perf_list = None
+
+    report_string_base = f'PowerOf10 WAVA list for {reqd_perf.athlete_name} ID {athlete_id} '
     if perf_list is None:
         perf_list = []
         try:
@@ -489,16 +493,21 @@ def process_po10_wava(perf, performance_cache, rebuild_cache, types):
             if len(rows) < 2:
                 continue
             # Looks like we've found the table of results or something similar
-            process_one_athlete_results_table(perf, rows, perf_list)
+            process_one_athlete_results_table(reqd_perf, rows, perf_list)
 
         performance_cache[cache_key] = perf_list
-    else:
-        print(report_string_base + f'{len(perf_list)} performances from cache')
 
     for perf in perf_list:
-        year = get_year_from_po10_date(perf.date)
-        process_performance(perf, types, 'wava', 'ALL')
-        process_performance(perf, types, 'wava', str(year))
+        # Only match performance of interest this time, as athlete may have
+        # performances logged when running for a different club
+        if reqd_perf.date != perf.date:
+            continue
+        else:
+            # Found performance we were looking for this time
+            year = get_year_from_po10_date(perf.date)
+            process_performance(perf, types, 'wava', 'ALL')
+            process_performance(perf, types, 'wava', str(year))
+            break
 
 
 def get_year_from_po10_date(date_str):
@@ -533,6 +542,7 @@ def process_one_athlete_results_table(example_perf, rows, perf_list):
         anchor = get_html_content(venue_link.inner_text, 'a')
         fixture_name = anchor[0].inner_text
         fixture_url = powerof10_root_url + anchor[0].attribs["href"]
+        fixture_url = fixture_url.replace('..', '') # in these pages, starts with relative path
         age_grade = cells[heading_idx['AGrade']].inner_text.strip()
         if not age_grade:
             # Could be multiterrain or XC or something, though should be excluded by event type anyway
@@ -594,7 +604,7 @@ def process_one_rankings_table(rows, gender, category, source, perf_list, types)
 
 
 def process_one_po10_year_gender(club_id, year, gender, category, performance_cache,
-                                  rebuild_cache, first_claim_only, types, do_wava):
+                                  rebuild_cache, first_claim_only, types, do_wava, rebuild_wava):
 
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : category,
@@ -653,7 +663,7 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
         process_performance(perf, types, 'record')
         performance_count['Po10'] += 1
         if do_wava and perf.event in wava_events:
-            process_po10_wava(perf, performance_cache, rebuild_cache, types)
+            process_po10_wava(perf, performance_cache, types, rebuild_wava)
 
 
 def make_cache_key(url, request_params):
@@ -1024,7 +1034,7 @@ def process_one_excel_worksheet(input_file, worksheet, types):
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
          do_po10=False, do_runbritain=True, input_files=[],
          cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False,
-         types=['T', 'F', 'R', 'M'], do_wava=True):
+         types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False):
 
     # Input files first so known club records appear above database results for same performance
     for input_file in input_files:
@@ -1046,7 +1056,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category,
                                                  performance_cache, rebuild_cache, first_claim_only,
-                                                 types, do_wava)
+                                                 types, do_wava, rebuild_wava)
             if do_runbritain:
                 for (event, _, _, runbritain, type) in known_events: # debug [('Mar', True, 3, True, 'R')]:
                     if not runbritain: continue
@@ -1085,6 +1095,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', dest='output_filename', default='records.htm')
     parser.add_argument('--cache', dest='cache_filename', default='cache.pkl')
     parser.add_argument('--rebuild-last-year', dest='rebuild_last_year',  choices=yes_no_choices, default='n')
+    parser.add_argument('--rebuild-wava', dest='rebuild_wava',  choices=yes_no_choices, default='n')
     parser.add_argument('--first-claim-only', dest='first_claim_only',  choices=yes_no_choices, default='n')
     parser.add_argument('--track', dest='track',  choices=yes_no_choices, default='y')
     parser.add_argument('--field', dest='field',  choices=yes_no_choices, default='y')
@@ -1097,6 +1108,7 @@ if __name__ == '__main__':
     do_po10           = args.do_po10.lower().startswith('y')
     do_runbritain     = args.do_runbritain.lower().startswith('y')
     rebuild_last_year = args.rebuild_last_year.lower().startswith('y')
+    rebuild_wava      = args.rebuild_wava.lower().startswith('y')
     first_claim_only  = args.first_claim_only.lower().startswith('y')
     do_wava           = args.wava.lower().startswith('y')
     types = []
@@ -1108,4 +1120,4 @@ if __name__ == '__main__':
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
          input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year,
-         first_claim_only=first_claim_only, types=types, do_wava=do_wava)
+         first_claim_only=first_claim_only, types=types, do_wava=do_wava, rebuild_wava=rebuild_wava)
