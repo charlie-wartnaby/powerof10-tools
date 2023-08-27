@@ -154,13 +154,13 @@ known_events = [
                 ('JT400',      False,       1,        True,     'F'     ),
                 ('JT500',      False,       1,        True,     'F'     ),
                 ('JT600',      False,       1,        True,     'F'     ),
-                ('JT600PRE86', False,       1,        False,    'F'    ), # Invented here for historical records
-                ('JT600PRE99', False,       1,        False,    'F'    ), # Invented here for historical records
+                ('JT600PRE86', False,       1,        False,    'F'     ), # Invented here for historical records
+                ('JT600PRE99', False,       1,        False,    'F'     ), # Invented here for historical records
                 ('JT700',      False,       1,        True,     'F'     ),
                 ('JT800',      False,       1,        True,     'F'     ),
-                ('JT800PRE86', False,       1,        False,    'F'    ), # Invented here for historical records
-                ('Minithon',   False,       1,        False,    'M'    ), # from C&C club records but not in Po10
-                ('Oct',        False,       1,        False,    'M'    ), # from C&C club records but not in Po10
+                ('JT800PRE86', False,       1,        False,    'F'     ), # Invented here for historical records
+                ('Minithon',   False,       1,        False,    'M'     ), # from C&C club records but not in Po10
+                ('Oct',        False,       1,        False,    'M'     ), # from C&C club records but not in Po10
                 ('PenU13W',    False,       1,        True,     'M'     ),
                 ('PenU13M',    False,       1,        True,     'M'     ),
                 ('PenU15W',    False,       1,        True,     'M'     ),
@@ -189,17 +189,14 @@ for (event, smaller_better, numbers, runbritain, type) in known_events:
 powerof10_categories = ['ALL', 'U13', 'U15', 'U17', 'U20']
 
 # Runbritain age categories
-# TODO I don't understand difference between on-the-day and "season" age
-# If both min and max are 0, need to search using category name not age range.
-# Otherwise use age range as runbritain skips some results if use category name, oddly.
 runbritain_categories = [ # name       min  max years old
                           ('ALL',        0,    0),
                           # ('Disability', 0,    0),     # Runbritain category but always zero results
-                          ('U13',        0,    0), # 1,   12), # Using official season age groups for juniors...
-                          ('U15',        0,    0), # 13,  14), # ... could make it different for road/parkruns?
-                          ('U17',        0,    0), # 15,  16),
-                          ('U20',        0,    0), # 17,  19),
-                          ('U23',        0,    0), # 20,  22),
+                          ('U13',        1,   12),
+                          ('U15',        13,  14),
+                          ('U17',        15,  16),
+                          ('U20',        17,  19),
+                          ('U23',        20,  22),
                           # Skipping senior as have all-age records
                           ('V35',        35,  39),
                           ('V40',        40,  44),
@@ -218,6 +215,15 @@ runbritain_categories = [ # name       min  max years old
 runbritain_category_lookup = {}
 for (category, min_age, max_age) in runbritain_categories:
     runbritain_category_lookup[category] = (min_age, max_age)
+
+age_category_lookup = {}
+for age in range(1, 120):
+    for (category, min_age, max_age) in runbritain_categories:
+        if age >= min_age and age <= max_age:
+            age_category_lookup[age] = category
+            break
+    if age not in age_category_lookup:
+        age_category_lookup[age] = 'SEN'
 
 
 
@@ -687,8 +693,9 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
                       'limit'          : 'n'      } # Otherwise miss slower performances, undocumented option
 
     (min_age, max_age) = runbritain_category_lookup[category]
-    if min_age == 0 and max_age == 0:
-        # Use category name
+    if max_age <= 22:
+        # Use category name for junior/youth categories where season age may not
+        # match birthday age
         request_params['agegroup'] = category
     else:
         # Runbritain can miss results if use e.g. V40 category that it finds if
@@ -876,7 +883,7 @@ def output_record_table(bulk_part, event, record_list, type):
     bulk_part.append('<tr>\n')
     bulk_part.append('<td><center><b>Rank</b></center></td>')
     if type == 'wava':
-        bulk_part.append('<td><center><b>Age Grade %</b></center></td><td><center><b>Age</b></center></td>')
+        bulk_part.append('<td><center><b>Age Grade %</b></center></td><td><center><b>Category</b></center></td>')
     bulk_part.append('<td><center><b>Performance</b></center></td><td><center><b>Athlete</b></center></td><td><center><b>Date</b></center></td><td><center><b>Fixture</b></center><td><center><b>Source</b></center></td>\n')
     bulk_part.append('</tr>\n')
     for idx, perf_list in enumerate(record_list):
@@ -891,7 +898,8 @@ def output_record_table(bulk_part, event, record_list, type):
             if type == 'wava':
                 wava_str = '%.2f' % perf.wava
                 bulk_part.append(f'  <td><center>{wava_str}</td>\n')
-                bulk_part.append(f'  <td><center>{perf.age}</td>\n')
+                # Using category rather than age, for modesty, though age is public on po10!
+                bulk_part.append(f'  <td><center>{perf.gender} {age_category_lookup[perf.age]}</td>\n')
             bulk_part.append(f'  <td><center>{score_str}</td>\n')
             if perf.athlete_url:
                 bulk_part.append(f'  <td><a href="{perf.athlete_url}">{perf.athlete_name}</a></td>\n')
