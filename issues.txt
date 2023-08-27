@@ -9,6 +9,7 @@ https://www.thepowerof10.info/content/itemdisplay.aspx?itemid=1685&fbclid=IwAR0s
 Now using runbritain age groups for youth records but still have that anomaly at least
 
 o Wind-assisted example?
+- Sophie Detienne 100m V40 record 13.8s in club records but flagged 'w' in Po10
 
 What does 'i' flag mean on Peter Howard's 3000W from 2009 sheet, MV65?
 
@@ -21,7 +22,9 @@ Should have some means of restricting page requests for niche events to only
 those gender/age combinations where they're relevant, instead of trying them
 for all very wastefully and slowly
 
-Age grade problem currently: finds all performances for all years for athlete, even if no
-longer at club for which result first found.
-
-Invalidate WAVA cache needed too.
+Why doesn't Sullivan Smith's 2018 Mile show up as V40 record?
+https://www.thepowerof10.info/athletes/profile.aspx?athleteid=3358#2018
+-- time was rounded down in club records
+Similarly Lucy Dowsett's 800m from 2009, club U20 record?
+https://www.thepowerof10.info/athletes/profile.aspx?athleteid=5070#2009
+-- similarly issue in club records sheet
