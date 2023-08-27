@@ -57,6 +57,7 @@ runbritain_root_url = 'https://www.runbritainrankings.com'
 
 performance_count = {'Po10'       : 0,
                      'Runbritain' : 0,
+                     'Po10-WAVA'  : 0,
                      'File(s)'    : 0}
 
 wava_events = ['Mar', 'HM', '10K']  # C&C trophy category but could do other events
@@ -513,6 +514,7 @@ def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava):
             year = get_year_from_po10_date(perf.date)
             process_performance(perf, types, 'wava', 'ALL')
             process_performance(perf, types, 'wava', str(year))
+            performance_count['Po10-WAVA'] += 1
             break
 
 
