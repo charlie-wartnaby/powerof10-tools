@@ -813,7 +813,6 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     for type in performance_count.keys():
         header_part.append(f' {type}: {performance_count[type]}')
     header_part.append(f'</p>\n')
-    header_part.append(f'<p><em>See <a href="https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools</a> for source code.</em></p>\n\n')
 
     contents_part = ['<h2>Contents</h2>\n\n']
     

@@ -22,9 +22,3 @@ Should have some means of restricting page requests for niche events to only
 those gender/age combinations where they're relevant, instead of trying them
 for all very wastefully and slowly
 
-Why doesn't Sullivan Smith's 2018 Mile show up as V40 record?
-https://www.thepowerof10.info/athletes/profile.aspx?athleteid=3358#2018
--- time was rounded down in club records
-Similarly Lucy Dowsett's 800m from 2009, club U20 record?
-https://www.thepowerof10.info/athletes/profile.aspx?athleteid=5070#2009
--- similarly issue in club records sheet
