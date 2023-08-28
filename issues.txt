@@ -22,3 +22,10 @@ Should have some means of restricting page requests for niche events to only
 those gender/age combinations where they're relevant, instead of trying them
 for all very wastefully and slowly
 
+https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=JT600&agegroup=V45&sex=W&year=2005
+finds Carole Morris V45 club record 28.73m, but doing by numeric age doesn't:
+https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=JT600&agemin=45&agemax=49&sex=W&year=2005
+A few early year throws missing like that, e.g. too Philip Bramford HT7.26K 38.33m:
+https://www.thepowerof10.info/athletes/profile.aspx?athleteid=22406#2005
+Noel Moss PV 2.5m 2005 on Po10 but wasn't found:
+https://www.thepowerof10.info/athletes/profile.aspx?athleteid=49838&viewby=agegraded
