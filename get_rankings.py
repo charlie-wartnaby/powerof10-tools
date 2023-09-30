@@ -818,6 +818,8 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
 
     main_contents_part = ['<h2>Contents</h2>\n\n']
     
+    main_contents_part.append('<table border="2">\n')
+
     complete_bulk_part = []
 
     year_keys = ['ALL']
@@ -831,7 +833,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             continue
         anchor = f'wava_{event}'.lower()
         subtitle = f'Age Grade: {event}'
-        main_contents_part.append(f'<b><a href="#{anchor}">{subtitle}</a></b><br />\n')
+        main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
         section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
         section_contents_part.append('<p>Jump to: \n')
         for year_key in year_keys:
@@ -849,12 +851,13 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
 
     for (category, _, _) in runbritain_categories:
         if category not in record: continue
+        main_contents_part.append('<tr>\n')
         for gender in ['W', 'M']:
             section_bulk_part = []
             section_contents_part = []
             anchor = f'category_{gender}_{category}'
             subtitle = f'Category: {gender} {category}'
-            main_contents_part.append(f'<b><a href="#{anchor}">{subtitle}</a></b><br />\n')
+            main_contents_part.append(f'<td><center><b><a href="#{anchor}">{subtitle}</a></b></center></td>\n')
             section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
             section_contents_part.append('<p>Jump to: \n')
             for (event, _, _, _, _) in known_events:
@@ -869,8 +872,9 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             section_contents_part.append('</p>\n\n')
             complete_bulk_part.extend(section_contents_part)
             complete_bulk_part.extend(section_bulk_part)
+        main_contents_part.append('</tr>\n')
 
-    main_contents_part.append('\n\n')
+    main_contents_part.append('</table>\n\n')
 
     tail_part = ['</body>\n',
                 '</html>\n']
