@@ -825,7 +825,6 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
         year_keys.append(str(year))
 
     for event in wava_events:
-        first_content = True
         section_bulk_part = []
         section_contents_part = []
         if event not in wava:
@@ -851,24 +850,25 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     for (category, _, _) in runbritain_categories:
         if category not in record: continue
         for gender in ['W', 'M']:
+            section_bulk_part = []
+            section_contents_part = []
             anchor = f'category_{gender}_{category}'
             subtitle = f'Category: {gender} {category}'
-            if first_content:
-                # Avoid big gap after Contents heading
-                first_content = False
-            else:
-                main_contents_part.append('<br />\n')
             main_contents_part.append(f'<b><a href="#{anchor}">{subtitle}</a></b><br />\n')
-            complete_bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+            section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+            section_contents_part.append('<p>Jump to: \n')
             for (event, _, _, _, _) in known_events:
                 if event not in record[category]: continue
                 record_list = record[category][event].get(gender)
                 if not record_list: continue
                 anchor = f'{event}_{gender}_{category}'.lower()
                 subtitle = f'{event} {gender} {category}'
-                main_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
-                complete_bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
-                output_record_table(complete_bulk_part, event, record_list, 'record')
+                section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
+                section_bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
+                output_record_table(section_bulk_part, event, record_list, 'record')
+            section_contents_part.append('</p>\n\n')
+            complete_bulk_part.extend(section_contents_part)
+            complete_bulk_part.extend(section_bulk_part)
 
     main_contents_part.append('\n\n')
 
