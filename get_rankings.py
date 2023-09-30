@@ -908,12 +908,12 @@ def output_record_table(bulk_part, event, record_list, type):
                 bulk_part.append(f'  <td><center>{perf.gender} {age_category_lookup[perf.age]}</td>\n')
             bulk_part.append(f'  <td><center>{score_str}</td>\n')
             if perf.athlete_url:
-                bulk_part.append(f'  <td><a href="{perf.athlete_url}">{perf.athlete_name}</a></td>\n')
+                bulk_part.append(f'  <td><a href="{perf.athlete_url}" target=”_blank”>{perf.athlete_name}</a></td>\n')
             else:
                 bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
             bulk_part.append(f'  <td>{perf.date}</td>\n')
             if perf.fixture_url:
-                bulk_part.append(f'  <td><a href="{perf.fixture_url}">{perf.fixture_name}</a></td>\n')
+                bulk_part.append(f'  <td><a href="{perf.fixture_url}" target=”_blank”>{perf.fixture_name}</a></td>\n')
             else:
                 bulk_part.append(f'  <td>{perf.fixture_name}</td>\n')
             bulk_part.append(f'  <td>{perf.source}</td>\n')
