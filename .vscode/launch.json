@@ -9,7 +9,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args":["--cache", "cnc_cache.pkl",
-                    "--firstyear", "2023",
+                    "--firstyear", "2021",
                     "--lastyear", "2023",
                     "--track", "n",
                     "--field", "n",
