@@ -18,9 +18,9 @@ I wish I was still a member of C&C but I think that expired in 2020 - either my 
 road 10k should be erased or I've got some other times to give you from the US!
 -- need some way to add a manual record to 'annihilate' an automatic find?
 
-Should have some means of restricting page requests for niche events to only
-those gender/age combinations where they're relevant, instead of trying them
-for all very wastefully and slowly
+Work in progress to only check niche events for appropriate gender/age categories.
+Why 1500SCW W ALL still listed when should only appear for certain age groups?
+And removes Diana Chalmers 5:22.32 performance?
 
 https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=JT600&agegroup=V45&sex=W&year=2005
 finds Carole Morris V45 club record 28.73m, but doing by numeric age doesn't:
