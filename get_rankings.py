@@ -160,14 +160,14 @@ known_events = [
                 ('WT9.08K',    False,       1,        True,     'F',                        ['W ALL', 'M U17', 'M V60', 'M V65']     ),
                 ('WT11.34K',   False,       1,        True,     'F',                        ['M U20', 'M V50', 'M V55']     ),
                 ('WT15.88K',   False,       1,        True,     'F',                        ['M ALL']     ),
-                ('JT400',      False,       1,        True,     'F',                        []     ),
-                ('JT500',      False,       1,        True,     'F',                        []     ),
-                ('JT600',      False,       1,        True,     'F',                        []     ),
-                ('JT600PRE86', False,       1,        False,    'F',                        []     ), # Invented here for historical records
-                ('JT600PRE99', False,       1,        False,    'F',                        []     ), # Invented here for historical records
-                ('JT700',      False,       1,        True,     'F',                        []     ),
-                ('JT800',      False,       1,        True,     'F',                        []     ),
-                ('JT800PRE86', False,       1,        False,    'F',                        []     ), # Invented here for historical records
+                ('JT400',      False,       1,        True,     'F',                        ['W U13', 'W V75', 'W V80', 'W V85', 'M U13', 'M V80', 'M V85', 'M V90']     ),
+                ('JT500',      False,       1,        True,     'F',                        ['W U15', 'W U17', 'W V50', 'W V55', 'W V60', 'W V65', 'W V70', 'M V70', 'M V75']     ),
+                ('JT600',      False,       1,        True,     'F',                        ['W ALL', 'M U15', 'M V60', 'M V65']     ),
+                ('JT600PRE86', False,       1,        False,    'F',                        ['W ALL']     ), # Invented here for historical records
+                ('JT600PRE99', False,       1,        False,    'F',                        ['W ALL']     ), # Invented here for historical records
+                ('JT700',      False,       1,        True,     'F',                        ['M U17', 'M V50']     ),
+                ('JT800',      False,       1,        True,     'F',                        ['M ALL']     ),
+                ('JT800PRE86', False,       1,        False,    'F',                        ['M ALL']     ), # Invented here for historical records
                 ('Minithon',   False,       1,        False,    'M',                        []     ), # from C&C club records but not in Po10
                 ('Oct',        False,       1,        False,    'M',                        []     ), # from C&C club records but not in Po10
                 ('PenU13W',    False,       1,        True,     'M',                        ['W U13']     ),
@@ -178,16 +178,88 @@ known_events = [
                 ('PenU17M',    False,       1,        True,     'M',                        ['M U17']     ),
                 ('PenU20M',    False,       1,        True,     'M',                        ['M U20']     ),
                 ('PenW',       False,       1,        True,     'M',                        ['W ALL']     ),
+                ('Pen',        False,       1,        True,     'M',                        ['M ALL']     ),
+                ('PenW35',     False,       1,        True,     'M',                        ['W V35']     ), # Outdoor
+                ('PenM35',     False,       1,        True,     'M',                        ['M V35']     ), # Outdoor
+                ('PenW40',     False,       1,        True,     'M',                        ['W V40']     ),
+                ('PenM40',     False,       1,        True,     'M',                        ['M V40']     ),
+                ('PenW45',     False,       1,        True,     'M',                        ['W V45']     ),
+                ('PenM45',     False,       1,        True,     'M',                        ['M V45']     ),
+                ('PenW50',     False,       1,        True,     'M',                        ['W V50']     ),
+                ('PenM50',     False,       1,        True,     'M',                        ['M V50']     ),
+                ('PenW55',     False,       1,        True,     'M',                        ['W V55']     ),
+                ('PenM55',     False,       1,        True,     'M',                        ['M V55']     ),
+                ('PenW60',     False,       1,        True,     'M',                        ['W V60']     ),
+                ('PenM60',     False,       1,        True,     'M',                        ['M V60']     ),
+                ('PenW65',     False,       1,        True,     'M',                        ['W V65']     ),
+                ('PenM65',     False,       1,        True,     'M',                        ['M V65']     ),
+                ('PenW70',     False,       1,        True,     'M',                        ['W V70']     ),
+                ('PenM70',     False,       1,        True,     'M',                        ['M V70']     ),
+                ('PenW75',     False,       1,        True,     'M',                        ['W V75']     ),
+                ('PenM75',     False,       1,        True,     'M',                        ['M V75']     ),
+                ('PenW80',     False,       1,        True,     'M',                        ['W V80']     ),
+                ('PenM80',     False,       1,        True,     'M',                        ['M V80']     ),
+                ('PenI',       False,       1,        True,     'M',                        ['M ALL']     ), # Indoor
+                ('PenIW35',    False,       1,        True,     'M',                        ['W V35']     ),
                 ('PenIM35',    False,       1,        True,     'M',                        ['M V35']     ),
+                ('PenIW40',    False,       1,        True,     'M',                        ['W V40']     ),
                 ('PenIM40',    False,       1,        True,     'M',                        ['M V40']     ),
-                ('PenWtM40',   False,       1,        True,     'M',                        []     ),
-                ('PenWtM45',   False,       1,        True,     'M',                        []     ),
-                ('PenWtM55',   False,       1,        True,     'M',                        []     ),
-                ('PenWtW60',   False,       1,        True,     'M',                        []     ),
-                ('PenWtM60',   False,       1,        True,     'M',                        []     ),
-                ('HepW',       False,       1,        True,     'M',                        ['W']     ),
-                ('HepU17W',    False,       1,        True,     'M',                        []     ),
-                ('Dec',        False,       1,        True,     'M',                        []     )
+                ('PenIW45',    False,       1,        True,     'M',                        ['W V45']     ),
+                ('PenIM45',    False,       1,        True,     'M',                        ['M V45']     ),
+                ('PenIW50',    False,       1,        True,     'M',                        ['W V50']     ),
+                ('PenIM50',    False,       1,        True,     'M',                        ['M V50']     ),
+                ('PenIW55',    False,       1,        True,     'M',                        ['W V55']     ),
+                ('PenIM55',    False,       1,        True,     'M',                        ['M V55']     ),
+                ('PenIW60',    False,       1,        True,     'M',                        ['W V60']     ),
+                ('PenIM60',    False,       1,        True,     'M',                        ['M V60']     ),
+                ('PenIW65',    False,       1,        True,     'M',                        ['W V65']     ),
+                ('PenIM65',    False,       1,        True,     'M',                        ['M V65']     ),
+                ('PenIW70',    False,       1,        True,     'M',                        ['W V70']     ),
+                ('PenIM70',    False,       1,        True,     'M',                        ['M V70']     ),
+                ('PenIM75',    False,       1,        True,     'M',                        ['M V75']     ), # No women's code beyond V70
+                ('PenIM80',    False,       1,        True,     'M',                        ['M V80']     ),
+                # Skipping weights pentathlon junior events, never seem to happen these days and no prev C&C records
+                ('PenWtW',     False,       1,        True,     'F',                        ['W ALL']     ),
+                ('PenWt',      False,       1,        True,     'F',                        ['M ALL']     ),
+                ('PenWtW35',   False,       1,        True,     'F',                        ['W V35']     ),
+                ('PenWtM35',   False,       1,        True,     'F',                        ['M V35']     ),
+                ('PenWtW40',   False,       1,        True,     'F',                        ['W V40']     ),
+                ('PenWtM40',   False,       1,        True,     'F',                        ['M V40']     ),
+                ('PenWtW45',   False,       1,        True,     'F',                        ['M V45']     ),
+                ('PenWtM45',   False,       1,        True,     'F',                        ['W V45']     ),
+                ('PenWtW50',   False,       1,        True,     'F',                        ['W V50']     ),
+                ('PenWtM50',   False,       1,        True,     'F',                        ['M V50']     ),
+                ('PenWtW55',   False,       1,        True,     'F',                        ['W V55']     ),
+                ('PenWtM55',   False,       1,        True,     'F',                        ['M V55']     ),
+                ('PenWtW60',   False,       1,        True,     'F',                        ['W V60']     ),
+                ('PenWtM60',   False,       1,        True,     'F',                        ['M V60']     ),
+                ('PenWtW65',   False,       1,        True,     'F',                        ['W V65']     ),
+                ('PenWtM65',   False,       1,        True,     'F',                        ['M V65']     ),
+                ('PenWtW70',   False,       1,        True,     'F',                        ['W V70']     ),
+                ('PenWtM70',   False,       1,        True,     'F',                        ['M V70']     ),
+                ('PenWtW75',   False,       1,        True,     'F',                        ['W V75']     ),
+                ('PenWtM75',   False,       1,        True,     'F',                        ['M V75']     ),
+                ('PenWtW80',   False,       1,        True,     'F',                        ['W V80']     ),
+                ('PenWtM80',   False,       1,        True,     'F',                        ['M V80']     ),
+                ('HepU17W',    False,       1,        True,     'M',                        ['W U17']     ),
+                ('HepW',       False,       1,        True,     'M',                        ['W ALL']     ),
+                ('HepW35',     False,       1,        True,     'M',                        ['W V35']     ),
+                ('HepW40',     False,       1,        True,     'M',                        ['W V35']     ),
+                ('HepW45',     False,       1,        True,     'M',                        ['W V40']     ),
+                ('HepW50',     False,       1,        True,     'M',                        ['W V50']     ),
+                ('HepW55',     False,       1,        True,     'M',                        ['W V55']     ),
+                ('HepW60',     False,       1,        True,     'M',                        ['W V60']     ),
+                ('HepW65',     False,       1,        True,     'M',                        ['W V65']     ),
+                ('DecU17M',    False,       1,        True,     'M',                        ['M U17']     ),
+                ('DecU20M',    False,       1,        True,     'M',                        ['M U20']     ),
+                ('Dec',        False,       1,        True,     'M',                        ['M ALL']     ),
+                ('DecM35',     False,       1,        True,     'M',                        ['M V35']     ),
+                ('DecM40',     False,       1,        True,     'M',                        ['M V40']     ),
+                ('DecM45',     False,       1,        True,     'M',                        ['M V45']     ),
+                ('DecM50',     False,       1,        True,     'M',                        ['M V50']     ),
+                ('DecM55',     False,       1,        True,     'M',                        ['M V55']     ),
+                ('DecM60',     False,       1,        True,     'M',                        ['M V60']     ),
+
  ]
 
 known_events_lookup = {}
@@ -1081,7 +1153,7 @@ def event_relevant_to_category(event, gender, category):
         # Blank means relevant for all
         return True
     
-    gender_wildcard = gender + 'ALL'
+    gender_wildcard = gender + ' ALL'
     if gender_wildcard in categories:
         # e.g. 2000SCW OK for any women
         return True
