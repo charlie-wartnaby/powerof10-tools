@@ -9,12 +9,12 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args":["--cache", "cnc_cache.pkl",
-                    "--firstyear", "2021",
-                    "--lastyear", "2023",
+                    "--firstyear", "2004",
+                    "--lastyear", "2004",
                     "--track", "n",
-                    "--field", "n",
+                    "--field", "y",
                     "--multievent", "n",
-                    "--wava", "y"]
+                    "--wava", "n"]
         }
     ]
 }

@@ -93,9 +93,9 @@ known_events = [
                 ('5000',       True,        2,        True,     'T',                        []     ),
                 ('10000',      True,        2,        True,     'T',                        []     ),
                 ('1500SC',     True,        2,        True,     'T',                        ['M U17']     ),
-                ('1500SCW',    True,        2,        True,     'T',                        ['W U17', 'W U20', 'W U23', 'W 45', 'W V50', 'W V55', 'W V60']     ),
-                ('2000SC',     True,        2,        True,     'T',                        ['M U17', 'M U20', 'M U23', 'M V35', 'M V40', 'M V45']     ),
-                ('2000SCW',    True,        2,        True,     'T',                        ['W U20', 'W U23', 'W V50', 'W V55']     ),
+                ('1500SCW',    True,        2,        True,     'T',                        ['W ALL', 'W U17', 'W U20', 'W U23', 'W 45', 'W V50', 'W V55', 'W V60']     ), # Included W ALL because official C&C records do, and so many age groups
+                ('2000SC',     True,        2,        True,     'T',                        ['M ALL', 'M U17', 'M U20', 'M U23', 'M V35', 'M V40', 'M V45']     ), # Included M ALL because official C&C records do, and so many age groups
+                ('2000SCW',    True,        2,        True,     'T',                        ['W ALL', 'W U20', 'W U23', 'W V50', 'W V55']     ),  # Included W ALL because official C&C records do, and so many age groups
                 ('3000SC',     True,        2,        True,     'T',                        ['M ALL']     ),
                 ('3000SCW',    True,        2,        True,     'T',                        ['W ALL']     ),
                 ('MileW',      True,        2,        True,     'T',                        []     ), # Walks not shown as runbritain dropdowns but are supported
@@ -140,17 +140,18 @@ known_events = [
                 ('SP5K',       False,       1,        True,     'F',                        ['M U17', 'M V60', 'M V65']     ),
                 ('SP6K',       False,       1,        True,     'F',                        ['M U20', 'M V50', 'M V55']     ),
                 ('SP7.26K',    False,       1,        True,     'F',                        ['M ALL']     ),
-                ('DT0.75K',    False,       1,        True,     'F',                        []     ),    # Got to here, DTs not yet done for age cats
-                ('DT1K',       False,       1,        True,     'F',                        []     ),
-                ('DT1.25K',    False,       1,        True,     'F',                        []     ),
-                ('DT1.5K',     False,       1,        True,     'F',                        []     ),
-                ('DT1.75K',    False,       1,        True,     'F',                        []     ),
-                ('DT2K',       False,       1,        True,     'F',                        []     ),
-                ('HT3K',       False,       1,        True,     'F',                        []     ),
-                ('HT4K',       False,       1,        True,     'F',                        []     ),
-                ('HT5K',       False,       1,        True,     'F',                        []     ),
-                ('HT6K',       False,       1,        True,     'F',                        []     ),
-                ('HT7.26K',    False,       1,        True,     'F',                        []     ),
+                ('DT0.75K',    False,       1,        True,     'F',                        ['W U13', 'W V75', 'W V80', 'W V85']     ),    # Got to here, DTs not yet done for age cats
+                ('DT1K',       False,       1,        True,     'F',                        ['W ALL', 'M U13', 'M V60', 'M V65', 'M V70', 'M V75' 'M V80', 'M V85']     ),
+                ('DT1.25K',    False,       1,        True,     'F',                        ['M U15']     ),
+                ('DT1.5K',     False,       1,        True,     'F',                        ['M U17', 'M V50', 'M V55']     ),
+                ('DT1.75K',    False,       1,        True,     'F',                        ['M U20']     ),
+                ('DT2K',       False,       1,        True,     'F',                        ['M ALL']     ),
+               # ('HT2K',       False,       1,        True,     'F',                        ['W V75', 'W V80', 'W V85']     ), # Valid but runbritain hanging so can't make new requests right now
+                ('HT3K',       False,       1,        True,     'F',                        ['W U13', 'W U15', 'W U17', 'W V50', 'W V55', 'W V60', 'W V65', 'W V70', 'M U13', 'M V80', 'M V85']     ),
+                ('HT4K',       False,       1,        True,     'F',                        ['W ALL', 'M U15', 'M V70', 'M V75']     ),
+                ('HT5K',       False,       1,        True,     'F',                        ['M U17', 'M V60', 'M V65']     ),
+                ('HT6K',       False,       1,        True,     'F',                        ['M U20', 'M V50', 'M V55']     ),
+                ('HT7.26K',    False,       1,        True,     'F',                        ['M ALL']     ),
                 ('WT5.45K',    False,       1,        True,     'F',                        []     ),
                 ('WT7.26K',    False,       1,        True,     'F',                        []     ),
                 ('WT9.08K',    False,       1,        True,     'F',                        []     ),
@@ -689,6 +690,9 @@ def make_cache_key(url, request_params):
 
 def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache,
                                         rebuild_cache, first_claim_only, types):
+
+    if event == 'DT1K' and category == 'ALL' and gender == 'W':
+        breakpoint = 1
 
     request_params = {'clubid'         : str(club_id),
                       'sex'            : gender,
