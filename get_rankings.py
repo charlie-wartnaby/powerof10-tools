@@ -63,7 +63,9 @@ performance_count = {'Po10'       : 0,
 wava_events = ['Mar', 'HM', '10K']  # C&C trophy category but could do other events
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
-# some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers):
+# some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers).
+# Some events only relevant to certain gender and/or age category; those found by checking po10
+# national rankings for different age groups to see e.g. which discus weight listed.
 #                event, small-is-good, :-numbers, runbritain,  Track/Field/Road/Multievent, Categories
 known_events = [
                 ('1M',         True,        2,        True,     'R',                        []     ),
@@ -146,16 +148,18 @@ known_events = [
                 ('DT1.5K',     False,       1,        True,     'F',                        ['M U17', 'M V50', 'M V55']     ),
                 ('DT1.75K',    False,       1,        True,     'F',                        ['M U20']     ),
                 ('DT2K',       False,       1,        True,     'F',                        ['M ALL']     ),
-               # ('HT2K',       False,       1,        True,     'F',                        ['W V75', 'W V80', 'W V85']     ), # Valid but runbritain hanging so can't make new requests right now
+                ('HT2K',       False,       1,        True,     'F',                        ['W V75', 'W V80', 'W V85']     ),
                 ('HT3K',       False,       1,        True,     'F',                        ['W U13', 'W U15', 'W U17', 'W V50', 'W V55', 'W V60', 'W V65', 'W V70', 'M U13', 'M V80', 'M V85']     ),
                 ('HT4K',       False,       1,        True,     'F',                        ['W ALL', 'M U15', 'M V70', 'M V75']     ),
                 ('HT5K',       False,       1,        True,     'F',                        ['M U17', 'M V60', 'M V65']     ),
                 ('HT6K',       False,       1,        True,     'F',                        ['M U20', 'M V50', 'M V55']     ),
                 ('HT7.26K',    False,       1,        True,     'F',                        ['M ALL']     ),
-                ('WT5.45K',    False,       1,        True,     'F',                        []     ),
-                ('WT7.26K',    False,       1,        True,     'F',                        []     ),
-                ('WT9.08K',    False,       1,        True,     'F',                        []     ),
-                ('WT11.34K',   False,       1,        True,     'F',                        []     ),
+                ('WT4K',       False,       1,        True,     'F',                        ['W V75', 'W V80', 'W V85']     ),
+                ('WT5.45K',    False,       1,        True,     'F',                        ['W U13', 'W U15', 'W V60', 'W V65', 'W V70', 'M U13', 'M V80', 'M V85']     ),
+                ('WT7.26K',    False,       1,        True,     'F',                        ['W U17', 'W V50', 'W V55', 'M U15', 'M V70', 'M V75']     ),
+                ('WT9.08K',    False,       1,        True,     'F',                        ['W ALL', 'M U17', 'M V60', 'M V65']     ),
+                ('WT11.34K',   False,       1,        True,     'F',                        ['M U20', 'M V50', 'M V55']     ),
+                ('WT15.88K',   False,       1,        True,     'F',                        ['M ALL']     ),
                 ('JT400',      False,       1,        True,     'F',                        []     ),
                 ('JT500',      False,       1,        True,     'F',                        []     ),
                 ('JT600',      False,       1,        True,     'F',                        []     ),
