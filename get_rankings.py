@@ -405,6 +405,18 @@ def construct_performance(event, gender, category, perf, name, url, date, fixtur
     return perf
 
 
+def source_pref_score(source):
+    if source.startswith('Po10'):
+        score = 2
+    elif source.startswith('Runbritain'):
+        score = 1
+    else:
+        # E.g. legacy spreadsheets now not preferred
+        score = 0
+    
+    return score
+
+
 def process_performance(perf, types, collection_choice, year='ALL'):
     """Add performance to overall and category record tables if appropriate,
       while respecting the max size of those tables"""
@@ -466,18 +478,18 @@ def process_performance(perf, types, collection_choice, year='ALL'):
                 # Prefer Po10 over Runbritain, and don't include both as share source data
                 for perf_idx, existing_perf in enumerate(existing_perf_list):
                     if existing_perf.athlete_name == perf.athlete_name:
-                        if existing_perf.source.startswith('Po10') and perf.source.startswith('Runbritain'):
-                            # Don't add Runbritain score if already there from Po10
-                            tie_same_name_managed = True
-                            break
-                        elif  existing_perf.source.startswith('Runbritain') and perf.source.startswith('Po10'):
-                            # Replace existing Runbritain one with Po10
-                            existing_perf_list[perf_idx] = perf
+                        existing_source_score = source_pref_score(existing_perf.source)
+                        this_source_score = source_pref_score(perf.source)
+                        if existing_source_score >= this_source_score:
+                            # E.g. don't add Runbritain score if already there from Po10
                             tie_same_name_managed = True
                             break
                         else:
-                            # Keep checking remaining performances for same name and score
-                            pass
+                            # E.g. replace existing Runbritain one with Po10, or prefer newer file
+                            # assuming provided in ascending date order
+                            existing_perf_list[perf_idx] = perf
+                            tie_same_name_managed = True
+                            break
                 if not tie_same_name_managed:
                     # Could be manual record to put alongside Po10 say
                     existing_perf_list.append(perf)
@@ -766,9 +778,6 @@ def make_cache_key(url, request_params):
 
 def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache,
                                         rebuild_cache, first_claim_only, types):
-
-    if event == 'DT1K' and category == 'ALL' and gender == 'W':
-        breakpoint = 1
 
     request_params = {'clubid'         : str(club_id),
                       'sex'            : gender,
@@ -1154,7 +1163,7 @@ def event_relevant_to_category(event, gender, category):
         return True
     
     gender_wildcard = gender + ' ALL'
-    if gender_wildcard in categories:
+    if False and gender_wildcard in categories:
         # e.g. 2000SCW OK for any women
         return True
     
