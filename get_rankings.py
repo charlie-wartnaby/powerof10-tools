@@ -1194,7 +1194,8 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023
         performance_cache = {}
 
     for year in range(first_year, last_year + 1):
-        rebuild_cache = rebuild_last_year and year == last_year
+        # E.g. to rebuild in Jan 2024 want last results from 2023 so year before too
+        rebuild_cache = rebuild_last_year and (year == last_year or year == last_year - 1)
         for gender in ['W', 'M']:
             if do_po10:
                 for category in powerof10_categories:
