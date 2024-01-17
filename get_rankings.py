@@ -1175,7 +1175,7 @@ def event_relevant_to_category(event, gender, category):
     return False
 
 
-def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2023, 
+def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024, 
          do_po10=False, do_runbritain=True, input_files=[],
          cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False,
          types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False):
