@@ -105,6 +105,7 @@ known_events = [
                 ('2000W',      True,        2,        True,     'T',                        []     ),
                 ('3000W',      True,        2,        True,     'T',                        []     ),
                 ('5000W',      True,        2,        True,     'T',                        []     ),
+                # 1MW, 2MW, 5KW, 10MW, 20MW events not supported by runbritain
                 ('5MW',        True,        2,        True,     'R',                        []     ),
                 ('10000W',     True,        2,        True,     'T',                        []     ),
                 ('10KW',       True,        2,        True,     'R',                        []     ),
