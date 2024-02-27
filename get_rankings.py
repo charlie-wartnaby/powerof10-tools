@@ -21,7 +21,7 @@ if sys.version_info.minor < 6:
 
 class Performance():
     def __init__(self, event, score, category, gender, original_special, decimal_places, athlete_name, athlete_url='', date='',
-                       fixture_name='', fixture_url='', source='', wava=0.0, age=0):
+                       fixture_name='', fixture_url='', source='', wava=0.0, age=0, invalid=False):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
         self.category = category # e.g. U20 or ALL
@@ -37,6 +37,8 @@ class Performance():
         # Added later to support marathon WAVA list, cached performances may not have:
         self.wava = wava
         self.age = age
+        # Added so that Po10/Runbritain records could be removed (e.g. if athlete known to no longer be in club):
+        self.invalid = invalid
 
 class HtmlBlock():
     def __init__(self, tag=''):
@@ -363,6 +365,16 @@ def debold(bold_tagged_string):
 
 def make_numeric_score_from_performance_string(perf):
     # For values like 2:17:23 or 1:28.37 need to split (hours)/mins/sec
+    # Also various special cases from legacy club records
+
+    perf = perf.lower()
+
+    # Support invalidation of records e.g. so that athletes who have left
+    # club but still listed as members on Po10 can have performances removed
+    invalid = False
+    if 'invalid' in perf:
+        invalid = True
+        perf = perf.replace('invalid', '')
 
     original_special = ''
 
@@ -394,15 +406,15 @@ def make_numeric_score_from_performance_string(perf):
     decimal_split = perf.split('.')
     decimal_places = 0 if len(decimal_split) < 2 else len(decimal_split[1])
 
-    return total_score, decimal_places, original_special
+    return total_score, decimal_places, original_special, invalid
 
 
 def construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url,
                           source, age_grade='0.0', age=0):
-    score, original_dp, original_special = make_numeric_score_from_performance_string(perf)
+    score, original_dp, original_special, invalid = make_numeric_score_from_performance_string(perf)
     wava = float(age_grade)
     perf = Performance(event, score, category, gender, original_special, original_dp, name, url, 
-                        date, fixture_name, fixture_url, source, wava=wava, age=age)
+                        date, fixture_name, fixture_url, source, wava=wava, age=age, invalid=invalid)
     return perf
 
 
@@ -479,6 +491,11 @@ def process_performance(perf, types, collection_choice, year='ALL'):
                 # Prefer Po10 over Runbritain, and don't include both as share source data
                 for perf_idx, existing_perf in enumerate(existing_perf_list):
                     if existing_perf.athlete_name == perf.athlete_name:
+                        if getattr(perf, 'invalid', False): # Po10 caches may predate this
+                            # Manual anti-record to delete entry we don't want
+                            del existing_perf_list[perf_idx]
+                            tie_same_name_managed = True
+                            break
                         existing_source_score = source_pref_score(existing_perf.source)
                         this_source_score = source_pref_score(perf.source)
                         if existing_source_score >= this_source_score:
@@ -1181,10 +1198,6 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
          cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False,
          types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False):
 
-    # Input files first so known club records appear above database results for same performance
-    for input_file in input_files:
-        process_one_input_file(input_file, types)
-
     # Retrieve cache of performances obtained from web trawl previously
     try:
         with open(cache_file, 'rb') as fd:
@@ -1212,6 +1225,10 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
                             process_one_runbritain_year_gender(club_id, year, gender, category, event,
                                                             performance_cache, rebuild_cache,
                                                             first_claim_only, types)
+
+    # Input files last so manual 'invalidate' entries will remove known anomalies from Po10
+    for input_file in input_files:
+        process_one_input_file(input_file, types)
 
     # Save updated cache for next time
     try:
