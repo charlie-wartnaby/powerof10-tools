@@ -936,29 +936,6 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     for year in range(last_year, first_year - 1, -1):
         year_keys.append(str(year))
 
-    for event in wava_events:
-        section_bulk_part = []
-        section_contents_part = []
-        if event not in wava:
-            continue
-        anchor = f'wava_{event}'.lower()
-        subtitle = f'Age Grade: {event}'
-        main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
-        section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
-        section_contents_part.append('<p>Jump to: \n')
-        for year_key in year_keys:
-            if year_key not in wava[event]:
-                continue
-            record_list = wava[event][year_key]
-            anchor = f'wava_{event}_{year_key}'.lower()
-            subtitle = year_key
-            section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
-            section_bulk_part.append(f'<h3><a name="{anchor}" />Age Grade {event} year: {subtitle}</h3>\n\n')
-            output_record_table(section_bulk_part, event, record_list, 'wava')
-        section_contents_part.append('</p>\n\n')
-        complete_bulk_part.extend(section_contents_part)
-        complete_bulk_part.extend(section_bulk_part)
-
     for (category, _, _) in runbritain_categories:
         if category not in record: continue
         main_contents_part.append('<tr>\n')
@@ -983,6 +960,29 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             complete_bulk_part.extend(section_contents_part)
             complete_bulk_part.extend(section_bulk_part)
         main_contents_part.append('</tr>\n')
+
+    for event in wava_events:
+        section_bulk_part = []
+        section_contents_part = []
+        if event not in wava:
+            continue
+        anchor = f'wava_{event}'.lower()
+        subtitle = f'Age Grade: {event}'
+        main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
+        section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+        section_contents_part.append('<p>Jump to: \n')
+        for year_key in year_keys:
+            if year_key not in wava[event]:
+                continue
+            record_list = wava[event][year_key]
+            anchor = f'wava_{event}_{year_key}'.lower()
+            subtitle = year_key
+            section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
+            section_bulk_part.append(f'<h3><a name="{anchor}" />Age Grade {event} year: {subtitle}</h3>\n\n')
+            output_record_table(section_bulk_part, event, record_list, 'wava')
+        section_contents_part.append('</p>\n\n')
+        complete_bulk_part.extend(section_contents_part)
+        complete_bulk_part.extend(section_bulk_part)
 
     main_contents_part.append('</table>\n\n')
 
