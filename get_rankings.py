@@ -131,6 +131,7 @@ known_events = [
                 ('400H',       True,        1,        True,     'T',                        ['M ALL']     ),
                 ('400HW',      True,        1,        True,     'T',                        ['W ALL']     ),
                 ('400HU17M',   True,        1,        True,     'T',                        ['M U17']     ),
+                ('400HM50',    True,        1,        True,     'T',                        ['M V50', 'M V55']     ),
                 ('4x100',      True,        1,        True,     'T',                        []     ),
                 ('4x400',      True,        2,        True,     'T',                        []     ),
                 ('HJ',         False,       1,        True,     'F',                        []     ),
@@ -436,7 +437,7 @@ def process_performance(perf, types, collection_choice, year='ALL'):
     
     known_event = known_events_lookup.get(perf.event)
     if not known_event:
-        print(f'Event not in known events: {event}')
+        print(f'Event not in known events: {perf.event}')
         return
     if known_event[3] not in types:
         # e.g. Track event but only want Road
