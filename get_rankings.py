@@ -133,6 +133,7 @@ known_events = [
                 ('400HU17M',   True,        1,        True,     'T',                        ['M U17']     ),
                 ('400HM50',    True,        1,        True,     'T',                        ['M V50', 'M V55']     ),
                 ('4x100',      True,        1,        True,     'T',                        []     ),
+                ('4x200',      True,        1,        True,     'T',                        []     ),
                 ('4x400',      True,        2,        True,     'T',                        []     ),
                 ('HJ',         False,       1,        True,     'F',                        []     ),
                 ('PV',         False,       1,        True,     'F',                        []     ),
