@@ -50,11 +50,14 @@ class HtmlBlock():
 
 record = {} # dict of age groups, each dict of events, each dict of genders, then ordered list of performance lists (allowing for ties)
 wava = {} # dict of events, each dict of years and 0 for all years, then ordered list of performance lists (to allow for ties)
+ea_pb = {} # dict of buckets (e.g. throws or sprints)
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_records_age_group = 3 # Similarly per age group
 max_wavas_all = 20  # All-time WAVA list
 max_wavas_year = 10 # WAVA list for specific year
 wava_athlete_ids_done = {}
+max_ea_pbs_all = max_wavas_all
+max_ea_pbs_year = max_wavas_year
 
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
@@ -471,7 +474,7 @@ def process_performance(perf, types, collection_choice, year='ALL'):
         max_records = max_records_all if perf.category == 'ALL' else max_records_age_group
         smaller_score_better = known_events_lookup[perf.event][0]
         compare_field = 'score'
-    else:
+    elif collection_choice == 'wava':
         collection = wava
         if perf.event not in collection:
             collection[perf.event] = {}
@@ -481,7 +484,28 @@ def process_performance(perf, types, collection_choice, year='ALL'):
         max_records = max_wavas_all if year == 'ALL' else max_wavas_year
         smaller_score_better = False # WAVA bigger the better always
         compare_field = 'wava'
-
+    elif collection_choice == 'ea_pb':
+        if perf.event not in ea_pb_award_score:
+            # No score tables loaded or event doesn't fit scheme
+            return
+        ea_pb_event = ea_pb_award_score[perf.event]
+        gender_age_cat = perf.gender + " " + perf.category
+        if gender_age_cat not in ea_pb_event:
+            # No score defined
+            return
+        ea_pb_obj = ea_pb_event[gender_age_cat]
+        smaller_score_better = known_events_lookup[perf.event][0]
+        perf.ea_pb_score = calculate_ea_pb_score(ea_pb_obj, perf.score, smaller_score_better)
+        compare_field = 'ea_pb_score'
+        collection = ea_pb
+        if ea_pb_obj.bucket not in collection:
+            collection[ea_pb_obj.bucket] = {}
+        if year not in collection[ea_pb_obj.bucket]:
+            collection[ea_pb_obj.bucket][year] = []
+        record_list = collection[ea_pb_obj.bucket][year]
+        max_records = max_ea_pbs_all if year == 'ALL' else max_ea_pbs_year
+    else:
+        raise ValueError(f"Unexpected collection_choice {collection_choice}")
 
     add_record = False
     if len(record_list) < max_records:
@@ -559,6 +583,51 @@ def process_performance(perf, types, collection_choice, year='ALL'):
                 rec_idx += 1
         # Keep list at max required length 
         del record_list[max_records :]
+
+
+def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
+    # The England Athletics PB Awards scheme gives an integer score to different
+    # performance attainments, but we need a continuous (decimal) score for close
+    # comparisons, so have to intepolate between the levels defined
+
+    worst_defined = ea_pb_obj.level_scores[0]
+    best_defined = ea_pb_obj.level_scores[num_ea_pb_levels - 1]
+
+    if smaller_score_better:
+        if score > worst_defined:
+            # Below Level 1
+            reciprocal_score = 1.0 / score # So long time gives small number
+            reciprocal_worst = 1.0 / worst_defined # Normalised to 1.0 for Level 1
+            ea_score = reciprocal_worst / reciprocal_score
+        elif score <= best_defined:
+            # At or above Level 9, ramp to "Level 10" at zero time
+            ea_score = (best_defined - score) / best_defined
+        else:
+            for lo_idx in range(0, num_ea_pb_levels - 1):
+                hi_idx = lo_idx + 1
+                if (score <= ea_pb_obj.level_scores[lo_idx] and 
+                       score > ea_pb_obj.level_scores[hi_idx]):
+                    delta = ea_pb_obj.level_scores[lo_idx] - ea_pb_obj.level_scores[hi_idx]
+                    diff = ea_pb_obj.level_scores[lo_idx] - score
+                    ea_score = diff / delta
+    else:
+        if score < worst_defined:
+            # Below Level 1, do smooth ramp to "Level 0" at zero
+            ea_score = score / worst_defined
+        elif score >= best_defined:
+            # At or above Level 9, ramp to "Level 10" at infinite performance
+            fraction = best_defined / score
+            ea_score = num_ea_pb_levels + (1.0 - fraction)
+        else:
+            for lo_idx in range(0, num_ea_pb_levels - 1):
+                hi_idx = lo_idx + 1
+                if (score >= ea_pb_obj.level_scores[lo_idx] and 
+                       score < ea_pb_obj.level_scores[hi_idx]):
+                    delta = ea_pb_obj.level_scores[hi_idx] - ea_pb_obj.level_scores[lo_idx]
+                    diff = score - ea_pb_obj.level_scores[lo_idx]
+                    ea_score = diff / delta
+
+    return ea_score
 
 
 def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava):
@@ -795,6 +864,8 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
 
     for perf in perf_list:
         process_performance(perf, types, 'record')
+        process_performance(perf, types, 'ea_pb', year='ALL')
+        process_performance(perf, types, 'ea_pb', year=year)
         performance_count['Po10'] += 1
         if do_wava and perf.event in wava_events:
             process_po10_wava(perf, performance_cache, types, rebuild_wava)
@@ -888,6 +959,8 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
     
     for perf in perf_list:
         process_performance(perf, types, 'record')
+        process_performance(perf, types, 'ea_pb', year='ALL')
+        process_performance(perf, types, 'ea_pb', year=year)
         performance_count['Runbritain'] += 1
 
 
@@ -1282,7 +1355,7 @@ def read_ea_pb_award_score_tables(ea_pb_award_file):
         rows_completed += 1
     
     print(f'... processed {rows_completed} rows from EA PB Awards tables')
-    
+
 
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024, 
          do_po10=False, do_runbritain=True, input_files=[],
