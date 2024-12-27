@@ -39,7 +39,8 @@ class Performance():
         self.age = age
         # Added so that Po10/Runbritain records could be removed (e.g. if athlete known to no longer be in club):
         self.invalid = invalid
-        # Added for England Athletics PB Award scheme, cached performances will not have:
+        # Added for England Athletics PB Award scheme, cached performances will not have
+        # but currently computed when used anyway:
         self.ea_pb_score = ea_pb_score
 
 class HtmlBlock():
@@ -494,8 +495,9 @@ def process_performance(perf, types, collection_choice, year='ALL'):
             # No score defined
             return
         ea_pb_obj = ea_pb_event[gender_age_cat]
-        smaller_score_better = known_events_lookup[perf.event][0]
+        smaller_score_better = known_events_lookup[perf.event][0] # Event time/distance/height
         perf.ea_pb_score = calculate_ea_pb_score(ea_pb_obj, perf.score, smaller_score_better)
+        smaller_score_better = False # Now EA PB Score not event time/distance/height
         compare_field = 'ea_pb_score'
         collection = ea_pb
         if ea_pb_obj.bucket not in collection:
@@ -865,7 +867,7 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
     for perf in perf_list:
         process_performance(perf, types, 'record')
         process_performance(perf, types, 'ea_pb', year='ALL')
-        process_performance(perf, types, 'ea_pb', year=year)
+        process_performance(perf, types, 'ea_pb', year=str(year))
         performance_count['Po10'] += 1
         if do_wava and perf.event in wava_events:
             process_po10_wava(perf, performance_cache, types, rebuild_wava)
@@ -1044,11 +1046,32 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 subtitle = f'{event} {gender} {category}'
                 section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
                 section_bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
-                output_record_table(section_bulk_part, event, record_list, 'record')
+                output_record_table(section_bulk_part, record_list, 'record')
             section_contents_part.append('</p>\n\n')
             complete_bulk_part.extend(section_contents_part)
             complete_bulk_part.extend(section_bulk_part)
         main_contents_part.append('</tr>\n')
+
+    for bucket in ea_pb.keys():
+        section_bulk_part = []
+        section_contents_part = []
+        anchor = f'ea_pb_{bucket}'.lower()
+        subtitle = f'England Athletics PB Awards scheme: {bucket}'
+        main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
+        section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+        section_contents_part.append('<p>Jump to: \n')
+        for year_key in year_keys:
+            if year_key not in ea_pb[bucket]:
+                continue
+            record_list = ea_pb[bucket][year_key]
+            anchor = f'ea_pb_{bucket}_{year_key}'.lower()
+            subtitle = year_key
+            section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
+            section_bulk_part.append(f'<h3><a name="{anchor}" />England Athletics PB Awards ({bucket}) year: {subtitle}</h3>\n\n')
+            output_record_table(section_bulk_part, record_list, 'ea_pb')
+        section_contents_part.append('</p>\n\n')
+        complete_bulk_part.extend(section_contents_part)
+        complete_bulk_part.extend(section_bulk_part)
 
     for event in wava_events:
         section_bulk_part = []
@@ -1068,7 +1091,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             subtitle = year_key
             section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
             section_bulk_part.append(f'<h3><a name="{anchor}" />Age Grade {event} year: {subtitle}</h3>\n\n')
-            output_record_table(section_bulk_part, event, record_list, 'wava')
+            output_record_table(section_bulk_part, record_list, 'wava')
         section_contents_part.append('</p>\n\n')
         complete_bulk_part.extend(section_contents_part)
         complete_bulk_part.extend(section_bulk_part)
@@ -1083,12 +1106,16 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             for line in part:
                 fd.write(line)
 
-def output_record_table(bulk_part, event, record_list, type):
+def output_record_table(bulk_part, record_list, type):
     bulk_part.append('<table border="2">\n')
     bulk_part.append('<tr>\n')
     bulk_part.append('<td><center><b>Rank</b></center></td>')
     if type == 'wava':
         bulk_part.append('<td><center><b>Age Grade %</b></center></td><td><center><b>Category</b></center></td>')
+    elif type == 'ea_pb':
+        bulk_part.append('<td><center><b>EA PB Score</b></center></td><td><center><b>Category</b></center></td><td><center><b>Event</b></center></td>')
+    else:
+        pass # No extra cols for standard club records
     bulk_part.append('<td><center><b>Performance</b></center></td><td><center><b>Athlete</b></center></td><td><center><b>Date</b></center></td><td><center><b>Fixture</b></center><td><center><b>Source</b></center></td>\n')
     bulk_part.append('</tr>\n')
     for idx, perf_list in enumerate(record_list):
@@ -1096,7 +1123,7 @@ def output_record_table(bulk_part, event, record_list, type):
             if perf.original_special:
                 score_str = perf.original_special
             else:
-                score_str = format_sexagesimal(perf.score, known_events_lookup[event][1], perf.decimal_places)
+                score_str = format_sexagesimal(perf.score, known_events_lookup[perf.event][1], perf.decimal_places)
             bulk_part.append('<tr>\n')
             rank_str = f'{idx+1}' if perf_idx == 0 else ''
             bulk_part.append(f'  <td><center>{rank_str}</center></td>\n')
@@ -1105,6 +1132,14 @@ def output_record_table(bulk_part, event, record_list, type):
                 bulk_part.append(f'  <td><center>{wava_str}</td>\n')
                 # Using category rather than age, for modesty, though age is public on po10!
                 bulk_part.append(f'  <td><center>{perf.gender} {age_category_lookup[perf.age]}</td>\n')
+            elif type == 'ea_pb':
+                ea_pb_str = '%.3f' % perf.ea_pb_score
+                bulk_part.append(f'  <td><center>{ea_pb_str}</td>\n')
+                category_str = perf.gender + " " + perf.category
+                bulk_part.append(f'  <td><center>{category_str}</td>\n')
+                bulk_part.append(f'  <td><center>{perf.event}</td>\n')
+            else:
+                pass # Nothing else for standard club records
             bulk_part.append(f'  <td><center>{score_str}</td>\n')
             if perf.athlete_url:
                 bulk_part.append(f'  <td><a href="{perf.athlete_url}" target=”_blank”>{perf.athlete_name}</a></td>\n')
@@ -1313,7 +1348,7 @@ def read_ea_pb_award_score_tables(ea_pb_award_file):
         # Can get None obj references as well as empty strings
         excel_row_number = row_idx + 1
         bucket = row['bucket']
-        bucket = str(bucket).lower().strip() if bucket else ''
+        bucket = str(bucket).strip() if bucket else '' # E.g. "Throw"
         event = row['po10 event']
         event = str(event).strip() if event else ''
         if not bucket and not event:
