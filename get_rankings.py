@@ -313,8 +313,18 @@ for age in range(1, 120):
     if age not in age_category_lookup:
         age_category_lookup[age] = 'SEN'
 
-
+# Read from file later
+# Indexed by Po10 event code, age/gender category
 ea_pb_award_score = {}
+num_ea_pb_levels  = 9
+
+class EaPbAwardScoreSet():
+    def __init__(self, bucket, event, category, level_scores):
+        self.bucket = bucket # e.g. Sprint or Endurance
+        self.event = event # Po10 event e.g. '400H'
+        self.category = category # age/gender e.g. 'W U20'
+        self.level_scores = level_scores # list of 9 numeric values for level 1 to level 9
+
 
 
 def get_html_content(html_text, html_tag):
@@ -1037,7 +1047,7 @@ def output_record_table(bulk_part, event, record_list, type):
     bulk_part.append('</table>\n\n')
 
 
-def process_one_input_file(input_file, types):
+def process_one_club_record_input_file(input_file, types):
 
     print(f'Processing file: {input_file}')
 
@@ -1048,10 +1058,10 @@ def process_one_input_file(input_file, types):
     
     workbook = openpyxl.load_workbook(filename=input_file)
     for worksheet in workbook.worksheets:
-        process_one_excel_worksheet(input_file, worksheet, types)
+        process_one_club_record_excel_worksheet(input_file, worksheet, types)
 
 
-def process_one_excel_worksheet(input_file, worksheet, types):
+def process_one_club_record_excel_worksheet(input_file, worksheet, types):
 
     reqd_headings = ['performance', 'date', 'name', 'po10 event', 'gender', 'age code']
     col_renames = {'year' : 'date', 'record holder' : 'name'}
@@ -1216,14 +1226,63 @@ def read_ea_pb_award_score_tables(ea_pb_award_file):
     workbook = openpyxl.load_workbook(filename=ea_pb_award_file)
     if len(workbook.worksheets) > 1:
         raise ValueError(f"Expected an Excel workbook with only one worksheet for EA PB Awards tables")
-    
-    reqd_headings = ['category', 'po10 event', 'gender', 'age code']
-    reqd_headings.extend([f'level {i}' for i in range(1,10)])
+
+    level_headings = [f'level {i}' for i in range(1, num_ea_pb_levels + 1)] # 1-based names
+    reqd_headings = ['bucket', 'po10 event', 'gender', 'age code']
+    reqd_headings.extend(level_headings)
 
     df = get_table_by_find_check_headings(workbook.worksheets[0], reqd_headings)
+    if df is None:
+        raise ValueError(f"Unable to read EA PB scores from {ea_pb_award_file}")
     
-    pass # TODO complete processing
+    rows_completed = 0
+    for row_idx, row in df.iterrows():
+        # Can get None obj references as well as empty strings
+        excel_row_number = row_idx + 1
+        bucket = row['bucket']
+        bucket = str(bucket).lower().strip() if bucket else ''
+        event = row['po10 event']
+        event = str(event).strip() if event else ''
+        if not bucket and not event:
+            # Assume blank row, quietly ignore
+            continue
+        if not bucket:
+            print(f'WARNING: EA "bucket" missing at row {excel_row_number}')
+            continue
+        if not event:
+            print(f'WARNING: Po10 event code missing at row {excel_row_number}')
+            continue
+        gender = row['gender']
+        gender = str(gender).upper().strip() if gender else ''
+        pb_genders = ['M', 'W', 'X']
+        if gender not in pb_genders:
+            print(f'WARNING: gender not one of {pb_genders} at row {excel_row_number}')
+            continue
+        age_code = row['age code']
+        age_code = str(age_code).upper().strip() if age_code else ''
+        if not age_code:
+            print(f'WARNING: age code missing at row {excel_row_number}')
+            continue
+        category = gender + " " + age_code
+        level_scores = [0] * num_ea_pb_levels
+        for level_idx in range(0, num_ea_pb_levels):
+            heading = f'level {level_idx + 1}'
+            perf = row[heading]
+            perf = str(perf).lower().strip() if perf else ''
+            if not perf:
+                print(f'WARNING: performance missing for {heading} at row {excel_row_number}')
+                break
+            score, original_dp, original_special, invalid = make_numeric_score_from_performance_string(perf)
+            level_scores[level_idx] = score
 
+        score_set = EaPbAwardScoreSet(bucket, event, category, level_scores)
+        if event not in ea_pb_award_score:
+            ea_pb_award_score[event] = {}
+        ea_pb_award_score[event][category] = score_set
+        rows_completed += 1
+    
+    print(f'... processed {rows_completed} rows from EA PB Awards tables')
+    
 
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024, 
          do_po10=False, do_runbritain=True, input_files=[],
@@ -1264,7 +1323,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
 
     # Input files last so manual 'invalidate' entries will remove known anomalies from Po10
     for input_file in input_files:
-        process_one_input_file(input_file, types)
+        process_one_club_record_input_file(input_file, types)
 
     # Save updated cache for next time
     try:
