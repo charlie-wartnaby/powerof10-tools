@@ -15,6 +15,7 @@
                     "--field", "n",
                     "--multievent", "y",
                     "--wava", "n",
+                    "--ea-pb-award-file", "EA_PB_Awards_tables.xlsx",
                     "2022_CnC_records.xlsx"]
         }
     ]

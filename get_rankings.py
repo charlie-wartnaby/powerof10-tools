@@ -21,7 +21,7 @@ if sys.version_info.minor < 6:
 
 class Performance():
     def __init__(self, event, score, category, gender, original_special, decimal_places, athlete_name, athlete_url='', date='',
-                       fixture_name='', fixture_url='', source='', wava=0.0, age=0, invalid=False):
+                       fixture_name='', fixture_url='', source='', wava=0.0, age=0, invalid=False, ea_pb_score=0.0):
         self.event = event
         self.score = score # could be time in sec, distance in m or multievent points
         self.category = category # e.g. U20 or ALL
@@ -39,6 +39,8 @@ class Performance():
         self.age = age
         # Added so that Po10/Runbritain records could be removed (e.g. if athlete known to no longer be in club):
         self.invalid = invalid
+        # Added for England Athletics PB Award scheme, cached performances will not have:
+        self.ea_pb_score = ea_pb_score
 
 class HtmlBlock():
     def __init__(self, tag=''):
@@ -311,6 +313,8 @@ for age in range(1, 120):
     if age not in age_category_lookup:
         age_category_lookup[age] = 'SEN'
 
+
+ea_pb_award_score = {}
 
 
 def get_html_content(html_text, html_tag):
@@ -1049,45 +1053,9 @@ def process_one_input_file(input_file, types):
 
 def process_one_excel_worksheet(input_file, worksheet, types):
 
-    print(f'Processing worksheet: {worksheet.title}')
-    df = pandas.DataFrame(worksheet.values)
-
-    # We get integers as headings instead of the intended column headings, so find those
-    headings_found = False
-    for row_idx, row in df.iterrows():
-        for col_idx, cell_value in enumerate(row.values):
-            if cell_value is None: continue
-            if cell_value.lower().strip() == 'performance':
-                headings_found = True
-                break
-        if headings_found: break
-
-    if not headings_found:
-        print(f'WARNING: could not find "Performance" heading, skipping sheet')
-        return
-    
-    df.columns = df.iloc[row_idx]
-    df.drop(df.index[0:row_idx + 1], inplace=True)
-    
-    # Convert all headings to lower case and strip whitespace
-    renames = {}
-    for col_name in df.columns:
-        if not col_name : continue
-        new_col_name = col_name.lower().strip()
-        renames[col_name] = new_col_name
-    df.rename(columns=renames, inplace=True)
-    
-    # C&C club records have some column headings that might not suit us for other
-    # input lists
-    df.rename(columns={'year' : 'date', 'record holder' : 'name'}, inplace=True)
-
-    col_name_list = df.columns.tolist()
-    for reqd_heading in ['performance', 'date', 'name', 'po10 event', 'gender', 'age code']:
-        if reqd_heading not in col_name_list:
-            if reqd_heading == 'date': reqd_heading = 'date [or year]'
-            if reqd_heading == 'name': reqd_heading = 'date [or record holder]'
-            print(f'Required heading not found (case insensitive), skipping sheet: {reqd_heading}')
-            return
+    reqd_headings = ['performance', 'date', 'name', 'po10 event', 'gender', 'age code']
+    col_renames = {'year' : 'date', 'record holder' : 'name'}
+    df = get_table_by_find_check_headings(worksheet, reqd_headings, col_renames)
 
     for row_idx, row in df.iterrows():
         # Can get None obj references as well as empty strings
@@ -1157,6 +1125,54 @@ def process_one_excel_worksheet(input_file, worksheet, types):
         process_performance(perf, types, 'record')
         performance_count['File(s)'] += 1
 
+
+def get_table_by_find_check_headings(worksheet, reqd_headings, renames_dict=None):
+    # Extract Pandas dataframe from Excel worksheet, if it has all the expected columns
+
+    print(f'Processing worksheet: {worksheet.title}')
+    df = pandas.DataFrame(worksheet.values)
+
+    # We get integers as headings instead of the intended column headings, so find those
+    headings_found = False
+    for row_idx, row in df.iterrows():
+        for col_idx, cell_value in enumerate(row.values):
+            if cell_value is None: continue
+            if cell_value.lower().strip() == reqd_headings[0]:
+                headings_found = True
+                break
+        if headings_found: break
+
+    if not headings_found:
+        print(f'WARNING: could not find "{reqd_headings[0]}" heading, skipping sheet')
+        return None
+    
+    df.columns = df.iloc[row_idx]
+    df.drop(df.index[0:row_idx + 1], inplace=True)
+    
+    # Convert all headings to lower case and strip whitespace
+    renames = {}
+    for col_name in df.columns:
+        if not col_name : continue
+        new_col_name = col_name.lower().strip()
+        renames[col_name] = new_col_name
+    df.rename(columns=renames, inplace=True)
+    
+    if renames_dict:
+        # C&C club records have some column headings that might not suit us for other
+        # input lists
+        df.rename(columns=renames_dict, inplace=True)
+
+    col_name_list = df.columns.tolist()
+    for reqd_heading in reqd_headings:
+        if reqd_heading not in col_name_list:
+            print(f'Required heading not found (case insensitive), skipping sheet: {reqd_heading}')
+            if renames_dict:
+                print(f'(That was after some column renames applied: {renames_dict})')
+            return None
+
+    return df
+
+
 def get_po10_club_name(club_id):
     request_params = {'clubid'   : str(club_id)}
 
@@ -1195,10 +1211,25 @@ def event_relevant_to_category(event, gender, category):
     return False
 
 
+def read_ea_pb_award_score_tables(ea_pb_award_file):
+    print(f"Opening file for EA PB Award score tables: {ea_pb_award_file}")
+    workbook = openpyxl.load_workbook(filename=ea_pb_award_file)
+    if len(workbook.worksheets) > 1:
+        raise ValueError(f"Expected an Excel workbook with only one worksheet for EA PB Awards tables")
+    
+    reqd_headings = ['category', 'po10 event', 'gender', 'age code']
+    reqd_headings.extend([f'level {i}' for i in range(1,10)])
+
+    df = get_table_by_find_check_headings(workbook.worksheets[0], reqd_headings)
+    
+    pass # TODO complete processing
+
+
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024, 
          do_po10=False, do_runbritain=True, input_files=[],
          cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False,
-         types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False):
+         types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False,
+         ea_pb_award_file=None):
 
     # Retrieve cache of performances obtained from web trawl previously
     try:
@@ -1208,6 +1239,9 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
     except IOError:
         print(f"Cache file {cache_file} can't be opened, starting new cache")
         performance_cache = {}
+
+    if ea_pb_award_file:
+        read_ea_pb_award_score_tables(ea_pb_award_file)
 
     for year in range(first_year, last_year + 1):
         # E.g. to rebuild in Jan 2024 want last results from 2023 so year before too
@@ -1270,6 +1304,7 @@ if __name__ == '__main__':
     parser.add_argument('--road', dest='road',  choices=yes_no_choices, default='y')
     parser.add_argument('--multievent', dest='multievent',  choices=yes_no_choices, default='y')
     parser.add_argument('--wava', dest='wava',  choices=yes_no_choices, default='y')
+    parser.add_argument('--ea-pb-award-file', dest='ea_pb_award_file', default=None)
 
     args = parser.parse_args()
 
@@ -1279,6 +1314,7 @@ if __name__ == '__main__':
     rebuild_wava      = args.rebuild_wava.lower().startswith('y')
     first_claim_only  = args.first_claim_only.lower().startswith('y')
     do_wava           = args.wava.lower().startswith('y')
+    ea_pb_award_file  = args.ea_pb_award_file
     types = []
     if args.track.lower().startswith('y'):      types.append('T')
     if args.field.lower().startswith('y'):      types.append('F')
@@ -1288,4 +1324,5 @@ if __name__ == '__main__':
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
          input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year,
-         first_claim_only=first_claim_only, types=types, do_wava=do_wava, rebuild_wava=rebuild_wava)
+         first_claim_only=first_claim_only, types=types, do_wava=do_wava, rebuild_wava=rebuild_wava,
+         ea_pb_award_file=ea_pb_award_file)
