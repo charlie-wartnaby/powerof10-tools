@@ -598,10 +598,10 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
             # Below Level 1
             reciprocal_score = 1.0 / score # So long time gives small number
             reciprocal_worst = 1.0 / worst_defined # Normalised to 1.0 for Level 1
-            ea_score = reciprocal_worst / reciprocal_score
+            ea_score = reciprocal_score / reciprocal_worst
         elif score <= best_defined:
             # At or above Level 9, ramp to "Level 10" at zero time
-            ea_score = (best_defined - score) / best_defined
+            ea_score = num_ea_pb_levels + (best_defined - score) / best_defined
         else:
             for lo_idx in range(0, num_ea_pb_levels - 1):
                 hi_idx = lo_idx + 1
@@ -609,7 +609,7 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
                        score > ea_pb_obj.level_scores[hi_idx]):
                     delta = ea_pb_obj.level_scores[lo_idx] - ea_pb_obj.level_scores[hi_idx]
                     diff = ea_pb_obj.level_scores[lo_idx] - score
-                    ea_score = diff / delta
+                    ea_score = (lo_idx + 1) + diff / delta
     else:
         if score < worst_defined:
             # Below Level 1, do smooth ramp to "Level 0" at zero
@@ -625,7 +625,7 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
                        score < ea_pb_obj.level_scores[hi_idx]):
                     delta = ea_pb_obj.level_scores[hi_idx] - ea_pb_obj.level_scores[lo_idx]
                     diff = score - ea_pb_obj.level_scores[lo_idx]
-                    ea_score = diff / delta
+                    ea_score = (lo_idx + 1) + diff / delta
 
     return ea_score
 
