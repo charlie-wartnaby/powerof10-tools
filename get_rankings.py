@@ -59,6 +59,7 @@ max_wavas_year = 10 # WAVA list for specific year
 wava_athlete_ids_done = {}
 max_ea_pbs_all = max_wavas_all
 max_ea_pbs_year = max_wavas_year
+ea_pb_limit_perf_fraction = 0.25   # Improvement beyond level 9 we use for 'level 10'
 
 powerof10_root_url = 'https://thepowerof10.info'
 runbritain_root_url = 'https://www.runbritainrankings.com'
@@ -594,7 +595,6 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
 
     worst_defined = ea_pb_obj.level_scores[0]
     best_defined = ea_pb_obj.level_scores[num_ea_pb_levels - 1]
-    next_best_defined =  ea_pb_obj.level_scores[num_ea_pb_levels - 2]
 
     if smaller_score_better:
         if score > worst_defined:
@@ -603,9 +603,10 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
             reciprocal_worst = 1.0 / worst_defined # Normalised to 1.0 for Level 1
             ea_score = reciprocal_score / reciprocal_worst
         elif score <= best_defined:
-            # At or above Level 9, extrapolate from level 8 to level 9 diff
-            end_table_gradient = next_best_defined - best_defined
-            ea_score = num_ea_pb_levels + (best_defined - score) / end_table_gradient
+            # At or above Level 9, ramp to "Level 10" at safe limit performance
+            limit_score = best_defined * (1 - ea_pb_limit_perf_fraction)
+            fraction_to_limit = (best_defined - score) / (best_defined - limit_score)
+            ea_score = num_ea_pb_levels + fraction_to_limit
         else:
             for lo_idx in range(0, num_ea_pb_levels - 1):
                 hi_idx = lo_idx + 1
@@ -619,9 +620,10 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
             # Below Level 1, do smooth ramp to "Level 0" at zero
             ea_score = score / worst_defined
         elif score >= best_defined:
-            # At or above Level 9, extrapolate from level 8 to level 9 diff
-            end_table_gradient = best_defined - next_best_defined
-            ea_score = num_ea_pb_levels + (score - best_defined) / end_table_gradient
+            # At or above Level 9, ramp to "Level 10" at a safe limit performance
+            limit_score = best_defined * (1 + ea_pb_limit_perf_fraction)
+            fraction_to_limit = (score - best_defined) / (limit_score - best_defined)
+            ea_score = num_ea_pb_levels + fraction_to_limit
         else:
             for lo_idx in range(0, num_ea_pb_levels - 1):
                 hi_idx = lo_idx + 1
