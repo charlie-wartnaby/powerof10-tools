@@ -594,6 +594,7 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
 
     worst_defined = ea_pb_obj.level_scores[0]
     best_defined = ea_pb_obj.level_scores[num_ea_pb_levels - 1]
+    next_best_defined =  ea_pb_obj.level_scores[num_ea_pb_levels - 2]
 
     if smaller_score_better:
         if score > worst_defined:
@@ -602,8 +603,9 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
             reciprocal_worst = 1.0 / worst_defined # Normalised to 1.0 for Level 1
             ea_score = reciprocal_score / reciprocal_worst
         elif score <= best_defined:
-            # At or above Level 9, ramp to "Level 10" at zero time
-            ea_score = num_ea_pb_levels + (best_defined - score) / best_defined
+            # At or above Level 9, extrapolate from level 8 to level 9 diff
+            end_table_gradient = next_best_defined - best_defined
+            ea_score = num_ea_pb_levels + (best_defined - score) / end_table_gradient
         else:
             for lo_idx in range(0, num_ea_pb_levels - 1):
                 hi_idx = lo_idx + 1
@@ -617,9 +619,9 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
             # Below Level 1, do smooth ramp to "Level 0" at zero
             ea_score = score / worst_defined
         elif score >= best_defined:
-            # At or above Level 9, ramp to "Level 10" at infinite performance
-            fraction = best_defined / score
-            ea_score = num_ea_pb_levels + (1.0 - fraction)
+            # At or above Level 9, extrapolate from level 8 to level 9 diff
+            end_table_gradient = best_defined - next_best_defined
+            ea_score = num_ea_pb_levels + (score - best_defined) / end_table_gradient
         else:
             for lo_idx in range(0, num_ea_pb_levels - 1):
                 hi_idx = lo_idx + 1
