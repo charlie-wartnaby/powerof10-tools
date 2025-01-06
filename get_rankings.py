@@ -55,7 +55,7 @@ ea_pb = {} # dict of buckets (e.g. throws or sprints)
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_records_age_group = 3 # Similarly per age group
 max_wavas_all = 20  # All-time WAVA list
-max_wavas_year = 10 # WAVA list for specific year
+max_wavas_year = 5 # WAVA list for specific year
 wava_athlete_ids_done = {}
 max_ea_pbs_all = max_wavas_all
 max_ea_pbs_year = max_wavas_year
@@ -1060,7 +1060,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
         section_bulk_part = []
         section_contents_part = []
         anchor = f'ea_pb_{bucket}'.lower()
-        subtitle = f'England Athletics PB Awards scheme: {bucket}'
+        subtitle = f'England Athletics PB Awards scheme: {bucket} [experimental]'
         main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
         section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
         section_contents_part.append('<p>Jump to: \n')
