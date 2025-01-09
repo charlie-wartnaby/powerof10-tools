@@ -20,6 +20,7 @@ if sys.version_info.minor < 6:
 
 
 class Performance():
+
     def __init__(self, event, score, category, gender, original_special, decimal_places, athlete_name, athlete_url='', date='',
                        fixture_name='', fixture_url='', source='', wava=0.0, age=0, invalid=False, ea_pb_score=0.0):
         self.event = event
@@ -712,19 +713,33 @@ def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava):
             continue
         else:
             # Found performance we were looking for this time
-            year = get_year_from_po10_date(perf.date)
+            year = get_perf_year(perf.date)
             process_performance(perf, types, 'wava', 'ALL')
             process_performance(perf, types, 'wava', str(year))
             performance_count['Po10-WAVA'] += 1
             break
 
 
-def get_year_from_po10_date(date_str):
-    parts = date_str.split(' ')
-    year_str = parts[2]
-    year = int(year_str)
-    year += 2000 # No Po10 results before this
-    return year
+# PowerOf10 dates always have form "1 Jan 1980" or "11 Jan 1989"
+regex_po10_date = re.compile(r'([0-9][0-9]?) ([A-Z][a-z][a-z]) ([0-9][0-9])')
+regex_4digits = re.compile(r'([0-9]{4})')
+
+def get_perf_year(perf_date_str):
+    # Return useful numeric year from whatever string we have
+    # Can't make this Performance method now because of cached objects on disk
+
+    # Mostly Po10/RunBritain
+    match_obj = regex_po10_date.match(perf_date_str)
+    if match_obj:
+        year_2digit = match_obj.group(3) # e.g. 24 for 2024
+        return 2000 + int(year_2digit)
+    # Manual records should at least have 4-digit number date
+    match_obj = regex_4digits.search(perf_date_str)
+    if match_obj:
+        return int(match_obj.group(1))
+    # If we get to here, we found nothing useful
+    print(f"WARNING: unparseable date found: {perf_date_str}")
+    return 1900
 
 
 def process_one_athlete_results_table(example_perf, rows, perf_list):
@@ -1027,6 +1042,9 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
 
     complete_bulk_part = []
 
+    new_records_last_year = []
+    last_complete_year = last_year - 1 # e.g. if running analysis in mid 2025, we have whole of 2024
+
     year_keys = ['ALL']
     for year in range(last_year, first_year - 1, -1):
         year_keys.append(str(year))
@@ -1051,6 +1069,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
                 section_bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
                 output_record_table(section_bulk_part, record_list, 'record')
+                add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, 'RECORD')
             section_contents_part.append('</p>\n\n')
             complete_bulk_part.extend(section_contents_part)
             complete_bulk_part.extend(section_bulk_part)
@@ -1073,6 +1092,8 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
             section_bulk_part.append(f'<h3><a name="{anchor}" />England Athletics PB Awards ({bucket}) year: {subtitle}</h3>\n\n')
             output_record_table(section_bulk_part, record_list, 'ea_pb')
+            if year_key == str(last_complete_year):
+                add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, "EA PB")
         section_contents_part.append('</p>\n\n')
         complete_bulk_part.extend(section_contents_part)
         complete_bulk_part.extend(section_bulk_part)
@@ -1096,8 +1117,19 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
             section_bulk_part.append(f'<h3><a name="{anchor}" />Age Grade {event} year: {subtitle}</h3>\n\n')
             output_record_table(section_bulk_part, record_list, 'wava')
+            if year_key == str(last_complete_year):
+                add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, "WAVA")
         section_contents_part.append('</p>\n\n')
         complete_bulk_part.extend(section_contents_part)
+        complete_bulk_part.extend(section_bulk_part)
+
+    if new_records_last_year:
+        section_bulk_part = []
+        anchor = 'new_best'
+        subtitle = f'New records achieved last calendar year: {last_complete_year}'
+        main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
+        section_bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+        output_record_table(section_bulk_part, new_records_last_year, 'new_last_year')
         complete_bulk_part.extend(section_bulk_part)
 
     main_contents_part.append('</table>\n\n')
@@ -1110,40 +1142,71 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             for line in part:
                 fd.write(line)
 
+
 def output_record_table(bulk_part, record_list, type):
+    if len(record_list) < 1:
+        return
+    
     bulk_part.append('<table border="2">\n')
     bulk_part.append('<tr>\n')
-    bulk_part.append('<td><center><b>Rank</b></center></td>')
-    if type == 'wava':
-        bulk_part.append('<td><center><b>Age Grade %</b></center></td><td><center><b>Category</b></center></td>')
-    elif type == 'ea_pb':
-        bulk_part.append('<td><center><b>EA PB Score</b></center></td><td><center><b>Category</b></center></td><td><center><b>Event</b></center></td>')
-    else:
-        pass # No extra cols for standard club records
+    # Different columns depending on type of table
+    show_rank_col     = (type != 'new_last_year')
+    show_reason_col   = (type == 'new_last_year')
+    show_wava_col     = (type in {'wava', 'new_last_year'})
+    show_ea_pb_col    = (type in {'ea_pb', 'new_last_year'})
+    show_category_col = (type in {'wava', 'ea_pb', 'new_last_year'})
+    show_event_col    = (type in {'ea_pb', 'new_last_year'})
+    if show_reason_col:
+        bulk_part.append('<td><center><b>Rank</b></center></td>')
+    if show_rank_col:
+        bulk_part.append('<td><center><b>Rank</b></center></td>')
+    if show_wava_col:
+        bulk_part.append('<td><center><b>Age Grade %</b></center></td>')
+    if show_ea_pb_col:
+        bulk_part.append('<td><center><b>EA PB Score</b></center></td>')
+    if show_category_col:
+        bulk_part.append('<td><center><b>Category</b></center></td>')
+    if show_event_col:
+        bulk_part.append('<td><center><b>Event</b></center></td>')
     bulk_part.append('<td><center><b>Performance</b></center></td><td><center><b>Athlete</b></center></td><td><center><b>Date</b></center></td><td><center><b>Fixture</b></center><td><center><b>Source</b></center></td>\n')
     bulk_part.append('</tr>\n')
     for idx, perf_list in enumerate(record_list):
         for perf_idx, perf in enumerate(perf_list): # May be ties with same score or different sources
+            if type == 'new_last_year': # tuple for best last year entries
+                reason = perf.reason
+            else:
+                reason = ''
             if perf.original_special:
                 score_str = perf.original_special
             else:
                 score_str = format_sexagesimal(perf.score, known_events_lookup[perf.event][1], perf.decimal_places)
             bulk_part.append('<tr>\n')
-            rank_str = f'{idx+1}' if perf_idx == 0 else ''
-            bulk_part.append(f'  <td><center>{rank_str}</center></td>\n')
-            if type == 'wava':
-                wava_str = '%.2f' % perf.wava
+            if show_reason_col:
+                bulk_part.append(f'  <td><center>{reason}</center></td>\n')
+            if show_rank_col:
+                rank_str = f'{idx+1}' if perf_idx == 0 else ''
+                bulk_part.append(f'  <td><center>{rank_str}</center></td>\n')
+            if show_wava_col:
+                if reason == 'WAVA' or type == 'wava':
+                    wava_str = '%.2f' % perf.wava
+                else:
+                    wava_str = '' # Not relevant for this one
                 bulk_part.append(f'  <td><center>{wava_str}</td>\n')
-                # Using category rather than age, for modesty, though age is public on po10!
-                bulk_part.append(f'  <td><center>{perf.gender} {age_category_lookup[perf.age]}</td>\n')
-            elif type == 'ea_pb':
-                ea_pb_str = '%.3f' % perf.ea_pb_score
+            if show_ea_pb_col:
+                if reason == 'EA PB' or type == 'ea_pb':
+                    ea_pb_str = '%.3f' % perf.ea_pb_score
+                else:
+                    ea_pb_str = ''
                 bulk_part.append(f'  <td><center>{ea_pb_str}</td>\n')
-                category_str = perf.gender + " " + perf.category
+            if show_category_col:
+                if reason == 'WAVA' or type == 'wava':
+                    # Using category rather than age, for modesty, though age is public on po10!
+                    category_str = f'{perf.gender} {age_category_lookup[perf.age]}'
+                else:
+                    category_str = perf.gender + " " + perf.category
                 bulk_part.append(f'  <td><center>{category_str}</td>\n')
+            if show_event_col:
                 bulk_part.append(f'  <td><center>{perf.event}</td>\n')
-            else:
-                pass # Nothing else for standard club records
             bulk_part.append(f'  <td><center>{score_str}</td>\n')
             if perf.athlete_url:
                 bulk_part.append(f'  <td><a href="{perf.athlete_url}" target=”_blank”>{perf.athlete_name}</a></td>\n')
@@ -1157,6 +1220,29 @@ def output_record_table(bulk_part, record_list, type):
             bulk_part.append(f'  <td>{perf.source}</td>\n')
             bulk_part.append('</tr>\n')
     bulk_part.append('</table>\n\n')
+
+
+def add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, reason):
+    if len(record_list) < 1:
+        return
+    perf_list = record_list[0] # Top row of record list only
+    best_last_year = []
+    for perf in perf_list: # May be ties with same score or different sources
+        perf_year = get_perf_year(perf.date)
+        if perf_year == last_complete_year:
+            best_last_year.append(perf)
+    if len(best_last_year) < 1:
+        # No new best last year
+        return
+    elif len(best_last_year) < len(perf_list):
+        # Although the best was matched last year, there was an earlier equal achievement
+        # so not a record this time
+        return
+    else:
+        # New record achieved one or more times this year
+        for perf in perf_list:
+            perf.reason = reason
+            new_records_last_year.append([perf])
 
 
 def process_one_club_record_input_file(input_file, types):
