@@ -3,6 +3,7 @@
 
 
 import argparse
+import copy
 import datetime
 import openpyxl
 import os
@@ -1042,7 +1043,8 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
 
     complete_bulk_part = []
 
-    new_records_last_year = []
+    new_records_last_year = [] # E.g. if running in 2025, best records obtained in 2024
+    new_records_this_year = [] # E.g. if running in 2025, best records obtained in 2025
     last_complete_year = last_year - 1 # e.g. if running analysis in mid 2025, we have whole of 2024
 
     year_keys = ['ALL']
@@ -1069,6 +1071,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
                 section_bulk_part.append(f'<h3><a name="{anchor}" />Records for {subtitle}</h3>\n\n')
                 output_record_table(section_bulk_part, record_list, 'record')
+                add_best_record_if_new_this_year(new_records_this_year, record_list, last_year, 'RECORD')
                 add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, 'RECORD')
             section_contents_part.append('</p>\n\n')
             complete_bulk_part.extend(section_contents_part)
@@ -1092,8 +1095,9 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
             section_bulk_part.append(f'<h3><a name="{anchor}" />England Athletics PB Awards ({bucket}) year: {subtitle}</h3>\n\n')
             output_record_table(section_bulk_part, record_list, 'ea_pb')
-            if year_key == str(last_complete_year):
-                add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, "EA PB")
+            if year_key == 'ALL':
+                add_best_record_if_new_this_year(new_records_this_year, record_list, last_year, 'EA PB')
+                add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, 'EA PB')
         section_contents_part.append('</p>\n\n')
         complete_bulk_part.extend(section_contents_part)
         complete_bulk_part.extend(section_bulk_part)
@@ -1117,19 +1121,30 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
             section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
             section_bulk_part.append(f'<h3><a name="{anchor}" />Age Grade {event} year: {subtitle}</h3>\n\n')
             output_record_table(section_bulk_part, record_list, 'wava')
-            if year_key == str(last_complete_year):
-                add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, "WAVA")
+            if year_key == 'ALL':
+                add_best_record_if_new_this_year(new_records_this_year, record_list, last_year, 'WAVA')
+                add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, 'WAVA')
         section_contents_part.append('</p>\n\n')
         complete_bulk_part.extend(section_contents_part)
         complete_bulk_part.extend(section_bulk_part)
 
-    if new_records_last_year:
+    if new_records_this_year:
         section_bulk_part = []
-        anchor = 'new_best'
-        subtitle = f'New records achieved last calendar year: {last_complete_year}'
+        anchor = f'new_best_{last_year}'
+        subtitle = f'New (or equalled) records achieved so far this calendar year: {last_year}'
         main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
         section_bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
-        output_record_table(section_bulk_part, new_records_last_year, 'new_last_year')
+        output_record_table(section_bulk_part, new_records_this_year, 'new_in_year')
+        complete_bulk_part.extend(section_bulk_part)
+
+    if new_records_last_year:
+        section_bulk_part = []
+        anchor = f'new_best_{last_complete_year}'
+        subtitle = f'New (or equalled) records achieved last calendar year: {last_complete_year}'
+        main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{anchor}">{subtitle}</a></b></center</td>\n</tr>\n')
+        section_bulk_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
+        section_bulk_part.append('<p><em>Note: skips records where same athlete has bettered record <b>this</b> year in same event.</em></p>')
+        output_record_table(section_bulk_part, new_records_last_year, 'new_in_year')
         complete_bulk_part.extend(section_bulk_part)
 
     main_contents_part.append('</table>\n\n')
@@ -1150,14 +1165,14 @@ def output_record_table(bulk_part, record_list, type):
     bulk_part.append('<table border="2">\n')
     bulk_part.append('<tr>\n')
     # Different columns depending on type of table
-    show_rank_col     = (type != 'new_last_year')
-    show_reason_col   = (type == 'new_last_year')
-    show_wava_col     = (type in {'wava', 'new_last_year'})
-    show_ea_pb_col    = (type in {'ea_pb', 'new_last_year'})
-    show_category_col = (type in {'wava', 'ea_pb', 'new_last_year'})
-    show_event_col    = (type in {'ea_pb', 'new_last_year'})
+    show_rank_col     = (type != 'new_in_year')
+    show_reason_col   = (type == 'new_in_year')
+    show_wava_col     = (type in {'wava', 'new_in_year'})
+    show_ea_pb_col    = (type in {'ea_pb', 'new_in_year'})
+    show_category_col = (type in {'wava', 'ea_pb', 'new_in_year'})
+    show_event_col    = (type in {'ea_pb', 'new_in_year'})
     if show_reason_col:
-        bulk_part.append('<td><center><b>Rank</b></center></td>')
+        bulk_part.append('<td><center><b>Type</b></center></td>')
     if show_rank_col:
         bulk_part.append('<td><center><b>Rank</b></center></td>')
     if show_wava_col:
@@ -1172,7 +1187,7 @@ def output_record_table(bulk_part, record_list, type):
     bulk_part.append('</tr>\n')
     for idx, perf_list in enumerate(record_list):
         for perf_idx, perf in enumerate(perf_list): # May be ties with same score or different sources
-            if type == 'new_last_year': # tuple for best last year entries
+            if type == 'new_in_year': # tuple for best last year entries
                 reason = perf.reason
             else:
                 reason = ''
@@ -1222,27 +1237,40 @@ def output_record_table(bulk_part, record_list, type):
     bulk_part.append('</table>\n\n')
 
 
-def add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, reason):
-    if len(record_list) < 1:
-        return
-    perf_list = record_list[0] # Top row of record list only
-    best_last_year = []
-    for perf in perf_list: # May be ties with same score or different sources
-        perf_year = get_perf_year(perf.date)
-        if perf_year == last_complete_year:
-            best_last_year.append(perf)
-    if len(best_last_year) < 1:
-        # No new best last year
-        return
-    elif len(best_last_year) < len(perf_list):
-        # Although the best was matched last year, there was an earlier equal achievement
-        # so not a record this time
-        return
-    else:
-        # New record achieved one or more times this year
-        for perf in perf_list:
-            perf.reason = reason
-            new_records_last_year.append([perf])
+def add_best_record_if_new_this_year(new_records_last_year, record_list, interest_year, reason):
+    """Identify if the top of a record table was claimed anew in the year of interest,
+     or has only been bettered in a later year if the year of interest is older"""
+    
+    for perf_list in record_list:
+        interest_year_performances = []
+        older_year_record_count = 0
+        for perf in perf_list: # May be ties with same score or different sources
+            perf_year = get_perf_year(perf.date)
+            if perf_year == interest_year:
+                interest_year_performances.append(perf)
+            elif perf_year > interest_year:
+                # OK if record obtained in 2025 when we're looking for records in 2024, ignore
+                pass
+            else:
+                # Obtained in older year
+                older_year_record_count += 1
+
+            if not interest_year_performances and older_year_record_count > 0:
+                # No new best in year of interest, bettered by an older record
+                # so stop searching down the table
+                return
+            elif len(interest_year_performances) > 0:
+                # New record achieved one or more times this year
+                # Note: Pete Thompson preferred that if a historical record were equalled,
+                # we show it "again" this time
+                for perf in interest_year_performances:
+                    perf_copy = copy.copy(perf) # So same performance can be RECORD, WAVA etc
+                    perf_copy.reason = reason
+                    new_records_last_year.append([perf_copy])
+                return
+            else:
+                # Only found newer records than year of interest so far, so continue searching
+                pass
 
 
 def process_one_club_record_input_file(input_file, types):
