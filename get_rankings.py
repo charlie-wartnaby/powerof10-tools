@@ -1255,22 +1255,23 @@ def add_best_record_if_new_this_year(new_records_last_year, record_list, interes
                 # Obtained in older year
                 older_year_record_count += 1
 
-            if not interest_year_performances and older_year_record_count > 0:
-                # No new best in year of interest, bettered by an older record
-                # so stop searching down the table
-                return
-            elif len(interest_year_performances) > 0:
-                # New record achieved one or more times this year
-                # Note: Pete Thompson preferred that if a historical record were equalled,
-                # we show it "again" this time
-                for perf in interest_year_performances:
-                    perf_copy = copy.copy(perf) # So same performance can be RECORD, WAVA etc
-                    perf_copy.reason = reason
-                    new_records_last_year.append([perf_copy])
-                return
-            else:
-                # Only found newer records than year of interest so far, so continue searching
-                pass
+        if not interest_year_performances and older_year_record_count > 0:
+            # No new best in year of interest, bettered by an older record
+            # so stop searching down the table
+            return
+        elif len(interest_year_performances) > 0:
+            # New record achieved one or more times this year
+            # Note: Pete Thompson preferred that if a historical record were equalled,
+            # we show it "again" this time
+            # Also showing historical one(s) alongside it
+            for perf in perf_list:
+                perf_copy = copy.copy(perf) # So same performance can be RECORD, WAVA etc
+                perf_copy.reason = reason
+                new_records_last_year.append([perf_copy])
+            return
+        else:
+            # Only found newer records than year of interest so far, so continue searching
+            pass
 
 
 def process_one_club_record_input_file(input_file, types):
