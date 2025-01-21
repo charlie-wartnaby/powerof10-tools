@@ -1338,7 +1338,7 @@ def process_one_club_record_excel_worksheet(input_file, worksheet, types):
         if category is None:
             print(f'WARNING: age category missing at row {excel_row_number}')
             continue
-        perf = str(perf).strip()
+        perf_str = str(perf).strip()
         if not perf:
             print(f'WARNING: performance missing at row {excel_row_number}')
             continue
@@ -1357,9 +1357,15 @@ def process_one_club_record_excel_worksheet(input_file, worksheet, types):
         if gender not in ['M', 'W']:
             print(f'WARNING: gender not W or M at row {excel_row_number}')
             continue
-        perf = construct_performance(event, gender, category, perf, name, name_url,
+        perf = construct_performance(event, gender, category, perf_str, name, name_url,
                             date, fixture, fixture_url, input_file + ':' + worksheet.title)
         process_performance(perf, types, 'record')
+        if category != 'ALL' and event_relevant_to_category(event, gender, 'ALL'):
+            # Also consider if this might be an outright record, not just in this age group
+            perf = construct_performance(event, gender, 'ALL', perf_str, name, name_url,
+                                date, fixture, fixture_url, input_file + ':' + worksheet.title)
+            process_performance(perf, types, 'record')
+    
         performance_count['File(s)'] += 1
 
 
@@ -1430,6 +1436,11 @@ def get_po10_club_name(club_id):
 
 def event_relevant_to_category(event, gender, category):
     # E.g. some hurdles events and throws only relevant to certain age groups/genders
+
+    if event not in known_events_lookup:
+        # May be historical event with no modern equivalent
+        return False
+    
     (_, _, _, _, categories) = known_events_lookup[event]
     if not categories:
         # Blank means relevant for all
