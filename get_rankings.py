@@ -453,6 +453,25 @@ def source_pref_score(source):
     return score
 
 
+def process_performance_cat_and_all(perf, types, collection_choice, year='ALL'):
+    """Our manual entries from spreadsheets
+    should be considered for overall records even if they are noted for an age group,
+    if that event is one that seniors do.
+    Also now catching if powerof10 or runbritain provide an age group performance
+    that's not all captured for ALL, but only found one instance of that in practice
+    (W 300 from 2005). It does result in powerof10 replacing some runbritain
+    equivalens though."""
+
+    process_performance(perf, types, collection_choice, year)
+
+    saved_category = perf.category
+    if saved_category != 'ALL' and event_relevant_to_category(perf.event, perf.gender, 'ALL'):
+        # Also consider if this might be an outright record, not just in this age group
+        perf.category = 'ALL' # Cheeky trick to avoid reconstructing for different category
+        process_performance(perf, types, collection_choice, year)
+        perf.category = saved_category
+
+
 def process_performance(perf, types, collection_choice, year='ALL'):
     """Add performance to overall and category record tables if appropriate,
       while respecting the max size of those tables"""
@@ -885,7 +904,7 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
         print(report_string_base + f'{len(perf_list)} performances from cache')
 
     for perf in perf_list:
-        process_performance(perf, types, 'record')
+        process_performance_cat_and_all(perf, types, 'record')
         process_performance(perf, types, 'ea_pb', year='ALL')
         process_performance(perf, types, 'ea_pb', year=str(year))
         performance_count['Po10'] += 1
@@ -980,7 +999,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
         print(report_string_base + f'{len(perf_list)} performances from cache')
     
     for perf in perf_list:
-        process_performance(perf, types, 'record')
+        process_performance_cat_and_all(perf, types, 'record')
         process_performance(perf, types, 'ea_pb', year='ALL')
         process_performance(perf, types, 'ea_pb', year=year)
         performance_count['Runbritain'] += 1
@@ -1359,12 +1378,7 @@ def process_one_club_record_excel_worksheet(input_file, worksheet, types):
             continue
         perf = construct_performance(event, gender, category, perf_str, name, name_url,
                             date, fixture, fixture_url, input_file + ':' + worksheet.title)
-        process_performance(perf, types, 'record')
-        if category != 'ALL' and event_relevant_to_category(event, gender, 'ALL'):
-            # Also consider if this might be an outright record, not just in this age group
-            perf = construct_performance(event, gender, 'ALL', perf_str, name, name_url,
-                                date, fixture, fixture_url, input_file + ':' + worksheet.title)
-            process_performance(perf, types, 'record')
+        process_performance_cat_and_all(perf, types, 'record')
     
         performance_count['File(s)'] += 1
 
