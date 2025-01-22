@@ -182,7 +182,7 @@ known_events = [
                 ('JT700',      False,       1,        True,     'F',                        ['M U17', 'M V50', 'M V55']     ),
                 ('JT800',      False,       1,        True,     'F',                        ['M ALL']     ),
                 ('JT800PRE86', False,       1,        False,    'F',                        ['M ALL']     ), # Invented here for historical records
-                ('Minithon',   False,       1,        False,    'M',                        []     ), # from C&C club records but not in Po10
+                ('Minithon',   False,       1,        False,    'M',                        ['W U13', 'M U13']     ), # from C&C club records but not in Po10
                 ('Oct',        False,       1,        False,    'M',                        []     ), # from C&C club records but not in Po10
                 ('PenU13W',    False,       1,        True,     'M',                        ['W U13']     ),
                 ('PenU13M',    False,       1,        True,     'M',                        ['M U13']     ),
