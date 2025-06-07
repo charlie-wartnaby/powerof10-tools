@@ -1034,8 +1034,22 @@ def format_sexagesimal(value, num_numbers, decimal_places):
 def output_records(output_file, first_year, last_year, club_id, do_po10, do_runbritain,
                    input_files, club_name):
 
+    stylesheet_ref_head="""
+<head>
+  <!-- This stylesheet font requested by Wing Wong to match C&C site 07Jun2025 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000" type="text/css" />
+  <style>
+    body {
+      font-family: "Mulish", sans-serif;
+    }
+  </style>
+</head>
+
+"""
+
     header_part = [
                     '<html>\n',
+                    stylesheet_ref_head,
                     '<body>\n',
                     f'<h1>{club_name} Club Records</h1>\n\n']
     
