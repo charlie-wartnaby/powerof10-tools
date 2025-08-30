@@ -1392,8 +1392,9 @@ def process_one_club_record_excel_worksheet(input_file, worksheet, types):
         if gender not in ['M', 'W']:
             print(f'WARNING: gender not W or M at row {excel_row_number}')
             continue
+        source = 'Historical worksheet: ' + input_file + ':' + worksheet.title
         perf = construct_performance(event, gender, category, perf_str, name, name_url,
-                            date, fixture, fixture_url, input_file + ':' + worksheet.title)
+                            date, fixture, fixture_url, source)
         process_performance_cat_and_all(perf, types, 'record')
     
         performance_count['File(s)'] += 1
