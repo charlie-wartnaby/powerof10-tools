@@ -1,7 +1,7 @@
 # First written by (c) Charlie Wartnaby 2023
 # See https://github.com/charlie-wartnaby/powerof10-tools">https://github.com/charlie-wartnaby/powerof10-tools
 
-
+# See/use requirements.txt for additional module dependencies
 import argparse
 import copy
 import datetime
@@ -10,7 +10,7 @@ import os
 import pandas
 import pickle
 import re
-import requests   # Not included by default, use pip install to add
+import requests
 import sys
 
 if sys.version_info.major < 3:
