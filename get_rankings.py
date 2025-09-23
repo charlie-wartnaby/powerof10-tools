@@ -73,7 +73,7 @@ performance_count = {'Po10'       : 0,
                      'Po10-WAVA'  : 0,
                      'File(s)'    : 0}
 
-wava_events = ['Mar', 'HM', '10K']  # C&C trophy category but could do other events
+wava_events = ['Mar', 'HM', '10K', '5K']  # C&C trophy category but could do other events
 
 # Smaller time is good for runs, bigger distance/score better for jumps/throws/multievents;
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers).
