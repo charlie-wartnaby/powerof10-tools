@@ -931,7 +931,7 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
                                         rebuild_cache, first_claim_only, types, do_wava, rebuild_wava):
     """Get rankings for a single event, age group, gender etc from runbritain; this is
     where such detailed rankings tables are fetched from when requested from powerof10."""
-    
+
     request_params = {'clubid'         : str(club_id),
                       'sex'            : gender,
                       'year'           : str(year),
@@ -1565,7 +1565,8 @@ def read_ea_pb_award_score_tables(ea_pb_award_file):
 
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024, 
          do_po10=False, do_runbritain=True, input_files=[],
-         cache_file='cache.pkl', rebuild_last_year=False, first_claim_only=False,
+         cache_file='cache.pkl', rebuild_final_year=False, rebuild_prefinal_year=False,
+         first_claim_only=False,
          types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False,
          ea_pb_award_file=None):
 
@@ -1582,8 +1583,10 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
         read_ea_pb_award_score_tables(ea_pb_award_file)
 
     for year in range(first_year, last_year + 1):
-        # E.g. to rebuild in Jan 2024 want last results from 2023 so year before too
-        rebuild_cache = rebuild_last_year and (year == last_year or year == last_year - 1)
+        # E.g. to rebuild in Jan 2024 want last results from 2023 so year before too,
+        # but later in year it's safe to only rebuild 2024
+        rebuild_cache = ((rebuild_final_year    and (year == last_year    )) or
+                         (rebuild_prefinal_year and (year == last_year - 1))   )
         for gender in ['W', 'M']:
             if do_po10:
                 for category in powerof10_categories:
@@ -1634,7 +1637,8 @@ if __name__ == '__main__':
     parser.add_argument('--clubid', dest='club_id', type=int, default=cnc_po10_club_id)
     parser.add_argument('--output', dest='output_filename', default='records.htm')
     parser.add_argument('--cache', dest='cache_filename', default='cache.pkl')
-    parser.add_argument('--rebuild-last-year', dest='rebuild_last_year',  choices=yes_no_choices, default='n')
+    parser.add_argument('--rebuild-final-year', dest='rebuild_final_year', choices=yes_no_choices, default='n')
+    parser.add_argument('--rebuild-prefinal-year', dest='rebuild_prefinal_year', choices=yes_no_choices, default='n')
     parser.add_argument('--rebuild-wava', dest='rebuild_wava',  choices=yes_no_choices, default='n')
     parser.add_argument('--first-claim-only', dest='first_claim_only',  choices=yes_no_choices, default='n')
     parser.add_argument('--track', dest='track',  choices=yes_no_choices, default='y')
@@ -1646,13 +1650,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    do_po10           = args.do_po10.lower().startswith('y')
-    do_runbritain     = args.do_runbritain.lower().startswith('y')
-    rebuild_last_year = args.rebuild_last_year.lower().startswith('y')
-    rebuild_wava      = args.rebuild_wava.lower().startswith('y')
-    first_claim_only  = args.first_claim_only.lower().startswith('y')
-    do_wava           = args.wava.lower().startswith('y')
-    ea_pb_award_file  = args.ea_pb_award_file
+    do_po10               = args.do_po10.lower().startswith('y')
+    do_runbritain         = args.do_runbritain.lower().startswith('y')
+    rebuild_final_year    = args.rebuild_final_year.lower().startswith('y')
+    rebuild_prefinal_year = args.rebuild_final_year.lower().startswith('y')
+    rebuild_wava          = args.rebuild_wava.lower().startswith('y')
+    first_claim_only      = args.first_claim_only.lower().startswith('y')
+    do_wava               = args.wava.lower().startswith('y')
+    ea_pb_award_file      = args.ea_pb_award_file
     types = []
     if args.track.lower().startswith('y'):      types.append('T')
     if args.field.lower().startswith('y'):      types.append('F')
@@ -1661,6 +1666,7 @@ if __name__ == '__main__':
 
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
-         input_files=args.excel_file, cache_file=args.cache_filename, rebuild_last_year=rebuild_last_year,
-         first_claim_only=first_claim_only, types=types, do_wava=do_wava, rebuild_wava=rebuild_wava,
+         input_files=args.excel_file, cache_file=args.cache_filename, rebuild_final_year=rebuild_final_year,
+         rebuild_prefinal_year=rebuild_prefinal_year, first_claim_only=first_claim_only, types=types,
+         do_wava=do_wava, rebuild_wava=rebuild_wava,
          ea_pb_award_file=ea_pb_award_file)
