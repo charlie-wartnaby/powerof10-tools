@@ -660,7 +660,7 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
 
 
 def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava):
-    """Add a marathon performance to WAVA tables, respecting max size"""
+    """Add a performance to WAVA tables"""
 
     athlete_id_match = re.search(r'athleteid=([0-9]+)', reqd_perf.athlete_url)
     athlete_id = athlete_id_match.group(1)
@@ -765,7 +765,9 @@ def get_perf_year(perf_date_str):
 
 
 def process_one_athlete_results_table(example_perf, rows, perf_list):
-
+    """Go through table of performances for a single athlete, especially intended
+    to pick out age grades"""
+    
     heading_row = rows.pop(0)
     cells = get_html_content(heading_row.inner_text, 'td')
     heading_idx = {}
@@ -850,8 +852,11 @@ def process_one_rankings_table(rows, gender, category, source, perf_list, types)
 
 
 def process_one_po10_year_gender(club_id, year, gender, category, performance_cache,
-                                  rebuild_cache, first_claim_only, types, do_wava, rebuild_wava):
-
+                                  rebuild_cache, first_claim_only, types):
+    """Process gender/age category rankings from powerof10 for specified year
+       for ALL events in one go (returned page has table per event, different
+       from runbritain)"""
+    
     request_params = {'clubid'         : str(club_id),
                       'agegroups'      : category,
                       'sex'            : gender,
@@ -910,8 +915,6 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
         process_performance(perf, types, 'ea_pb', year='ALL')
         process_performance(perf, types, 'ea_pb', year=str(year))
         performance_count['Po10'] += 1
-        if do_wava and perf.event in wava_events:
-            process_po10_wava(perf, performance_cache, types, rebuild_wava)
 
 
 def make_cache_key(url, request_params):
@@ -925,8 +928,10 @@ def make_cache_key(url, request_params):
 
 
 def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache,
-                                        rebuild_cache, first_claim_only, types):
-
+                                        rebuild_cache, first_claim_only, types, do_wava, rebuild_wava):
+    """Get rankings for a single event, age group, gender etc from runbritain; this is
+    where such detailed rankings tables are fetched from when requested from powerof10."""
+    
     request_params = {'clubid'         : str(club_id),
                       'sex'            : gender,
                       'year'           : str(year),
@@ -1005,6 +1010,11 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
         process_performance(perf, types, 'ea_pb', year='ALL')
         process_performance(perf, types, 'ea_pb', year=year)
         performance_count['Runbritain'] += 1
+        if do_wava and perf.event in wava_events:
+            # Done in runbritain processing because po10 overall (all events)
+            # rankings by year don't reliably include 5K
+            process_po10_wava(perf, performance_cache, types, rebuild_wava)
+
 
 
 def format_sexagesimal(value, num_numbers, decimal_places):
@@ -1579,7 +1589,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category,
                                                  performance_cache, rebuild_cache, first_claim_only,
-                                                 types, do_wava, rebuild_wava)
+                                                 types)
             if do_runbritain:
                 for (event, _, _, runbritain, type, categories) in known_events: # debug [('Mar', True, 3, True, 'R')]:
                     if not runbritain: continue
@@ -1588,7 +1598,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
                         if event_relevant_to_category(event, gender, category):
                             process_one_runbritain_year_gender(club_id, year, gender, category, event,
                                                             performance_cache, rebuild_cache,
-                                                            first_claim_only, types)
+                                                            first_claim_only, types, do_wava, rebuild_wava)
 
     # Input files last so manual 'invalidate' entries will remove known anomalies from Po10
     for input_file in input_files:
