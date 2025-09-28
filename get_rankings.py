@@ -1269,7 +1269,8 @@ def output_record_table(bulk_part, record_list, type):
                 bulk_part.append(f'  <td><center>{perf.event}</td>\n')
             bulk_part.append(f'  <td><center>{score_str}</td>\n')
             if perf.athlete_url:
-                bulk_part.append(f'  <td><a href="{perf.athlete_url}" target=”_blank”>{perf.athlete_name}</a></td>\n')
+                athlete_url = make_athlete_url_po10(perf.athlete_url)
+                bulk_part.append(f'  <td><a href="{athlete_url}" target=”_blank”>{perf.athlete_name}</a></td>\n')
             else:
                 bulk_part.append(f'  <td>{perf.athlete_name}</td>\n')
             bulk_part.append(f'  <td>{perf.date}</td>\n')
@@ -1280,6 +1281,16 @@ def output_record_table(bulk_part, record_list, type):
             bulk_part.append(f'  <td>{perf.source}</td>\n')
             bulk_part.append('</tr>\n')
     bulk_part.append('</table>\n\n')
+
+
+def make_athlete_url_po10(original_url):
+    """Get athlete URLs in preferred form; done at output stage as old ones cached"""
+    
+    # Prefer Po10 profile URLs:
+    #   https://thepowerof10.info/athletes/profile.aspx?athleteid=204954
+    # to runbritain ones:
+    #   https://www.runbritainrankings.com/runners/profile.aspx?athleteid=204954
+    return original_url.replace('www.runbritainrankings.com/runners', 'thepowerof10.info/athletes')
 
 
 def add_best_record_if_new_this_year(new_records_last_year, record_list, interest_year, reason):
