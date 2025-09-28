@@ -47,7 +47,8 @@ class Performance():
 
 class Trophy():
     """A Cambridge and Coleridge annual award"""
-    def __init__(self, title, artefact, approach, notes=''):
+    def __init__(self, tag, title, artefact, approach, notes=''):
+        self.tag = tag
         self.title = title
         self.artefact = artefact
         self.approach = approach # if 'Auto' then can be generated here
@@ -61,9 +62,12 @@ class HtmlBlock():
         self.inner_text = ''
         self.attribs = {}
 
+# The collections of records of different types:
 record = {} # dict of age groups, each dict of events, each dict of genders, then ordered list of performance lists (allowing for ties)
-wava = {} # dict of events, each dict of years and 0 for all years, then ordered list of performance lists (to allow for ties)
-ea_pb = {} # dict of buckets (e.g. throws or sprints)
+wava   = {} # dict of events, each dict of years and 0 for all years, then similar ordered list of performance lists
+ea_pb  = {} # dict of buckets (e.g. throws or sprints), then similar ordered list of performance lists
+agm    = {} # dict of years, then AGM prize tags, then similar ordered list of performance lists
+
 max_records_all = 10 # max number of records for each event/gender, including all age groups
 max_records_age_group = 3 # Similarly per age group
 max_wavas_all = 20  # All-time WAVA list
@@ -334,56 +338,56 @@ for age in range(1, 120):
 
 # As initially taken from 2025_CnC_rolls_of_honour.xlsx:
 cnc_trophies = [
-    Trophy('Marathon Trophy - Best Performance Male',                                     'C&C trophy',                   'Auto', 'Marathon results only'                ),
-    Trophy('Marathon Trophy - Best Performance Female',                                   'C&C trophy',                   'Auto', 'Marathon results only'                ),
-    Trophy('Marathon Trophy - Best Performance Masters',                                  'The Howard Cup',               'Auto', 'Marathon results only'                ),
-    Trophy('Half Marathon - Best Performance Male',                                       'Huddleston Trophy',            'Auto', 'Half Marathon results only'           ),
-    Trophy('Half Marathon - Best Performance Female',                                     'C&C Trophy',                   'Auto', 'Half Marathon results only'           ),
-    Trophy('Half Marathon - Best Performance Masters',                                    'C&C Cup',                      'Auto', 'Half Marathon results only'           ),
-    Trophy('10k Road race - Best Performance Male',                                       'C&C Trophy',                   'Auto', '10k Road Races only'                  ),
-    Trophy('10k Road race - Best Performance Female',                                     'C&C Trophy',                   'Auto', '10k Road Races only'                  ),
-    Trophy('10k Road race - Best Performance Masters',                                    'C&C Trophy',                   'Auto', '10k Road Races only'                  ),
-    Trophy('5k Road race - Best Performance Male',                                        'The Peter Howard Trophy',      'Auto', '5k Road Races only'                   ),
-    Trophy('5k Road race - Best Performance female',                                      'The Vice-Presidents Cup',      'Auto', '5k Road Races only'                   ),
-    Trophy('5k Road race - Best Performance Veterans',                                    'The Wilding Challenge Trophy', 'Auto', '5k Road Races only'                   ),
-    Trophy('Best Performance Sprints - Male',                                             'C&C Shield',                   'Auto', '60, 100, 200, 300 and 400 flat sprint'),
-    Trophy('Best Performance Sprints - Female',                                           'C&C Shield',                   'Auto', '60, 100, 200, 300 and 400 flat sprint'),
-    Trophy('Best Performance Middle Distance - Male',                                     'C&C Shield',                   'Auto', '600, 800, 1500, 3000, 3000SC'         ),
-    Trophy('Best Performance Middle Distance - Female',                                   'C&C Shield',                   'Auto', '600, 800, 1500, 3000, 3000SC'         ),
-    Trophy('Best Performance Vertical Jumps',                                             'RHA Trophy',                   'Auto', 'High Jump and Pole Vault'             ),
-    Trophy('Best Performance Long and Triple jump',                                       'Derek Hulyer Cup',             'Auto', 'Long Jump and T'                      ),
-    Trophy('Best Performance Hurdles - Male U15 - Seniors',                               'The George Hibberd Trophy',    'Auto', '60mH, 80mH, 100mH, 110mH'             ),
-    Trophy('Best Performance Hurdles - Female U15 - Seniors',                             'The George Hibberd Trophy',    'Auto', '60mH, 75mH, 80mH, 100mH'              ),
-    Trophy('Best Performance Hurdles - Under 13 Boys ',                                   'The East Cambs Trophy',        'Auto', '60mH, 75mH'                           ),
-    Trophy('Best Performance Hurdles - Under 13 Girls',                                   'The C&C Trophy',               'Auto', '60mH, 70mH'                           ),
-    Trophy('Best Performance - Senior Throws (U20/senior equipment)',                     'The Bramford Cup',             'Auto', 'Discus, Shot, Javelin, Hammer'        ),
-    Trophy('Best Performance - Junior Throws (U13/U15/U17 equipment)',                    'The George Smith Cup',         'Auto', 'Discus, Shot, Javelin, Hammer'        ),
-    Trophy('Best Performance Multi-events - Male',                                        'The Gillingham Cup',           'Auto', 'Pentathlon, Heptathlon, Decathlon'    ),
-    Trophy('Best Performance Multi-events - Female',                                      'The Bill Oliver Cup',          'Auto', 'Pentathlon, Heptathlon'               ),
-    Trophy('Best Performance Track and Field - Male',                                     'W Mitchell Hall Cup',          'Committee Selection'   ),
-    Trophy('Best Performance Track and Field - Female',                                   'The Simpson cup',              'Committee Selection'   ),
-    Trophy('Best Performance Track and Field - Veteran male',                             'The George Smith trophy',      'Committee Selection'   ),
-    Trophy('Best Performance Track and Field - Veteran Female',                           'T&F Shield',                   'Committee Selection'   ),
-    Trophy('Best Performance of the Season (all disciplines)',                            'H.G Ashman Cup',               'Committee Selection'   ),
-    Trophy('Best Masters Performance of the Season (all disciplines)',                    'The Veteran Shield',           'Committee Selection'   ),
-    Trophy('Best Performance of the season - Wheelchair/Frame Runner/Disability athlete', 'C&C trophy',                   'Committee Selection'   ),
-    Trophy('Contribution to the club',                                                    'C&C trophy',                   'Committee Selection'   ),
-    Trophy('Race Walking - Junior',                                                       '',                             'Auto'                  ),
-    Trophy('Race Walking - Senior',                                                       '',                             'Auto'                  ),
-    Trophy('Glyn Smith Award',                                                            '',                             'Committee Selection'   ),
-    Trophy('Keith Davidson Award',                                                        '',                             'Committee Selection'   ),
-    Trophy('EYAL Team Manager Award - Male',                                              '',                             'Team Manager Selection'),
-    Trophy('EYAL Team Manager Award - Female',                                            '',                             'Team Manager Selection'),
-    Trophy('EAL Team Manager Award - Male',                                               '',                             'Team Manager Selection'),
-    Trophy('EAL Team Manager Award - Female',                                             '',                             'Team Manager Selection'),
-    Trophy('SAL Team Manager Award - Male',                                               '',                             'Team Manager Selection'),
-    Trophy('SAL Team Manager Award - Female',                                             '',                             'Team Manager Selection'),
-    Trophy('EMAC Team Manager Award - Male',                                              '',                             'Team Manager Selection'),
-    Trophy('EMAC Team Manager Award - Female',                                            '',                             'Team Manager Selection'),
-    Trophy('Frostbite Junior Team Manager Award - Male',                                  '',                             'Team Manager Selection'),
-    Trophy('Frostbite Junior Team Manager Award - Female',                                '',                             'Team Manager Selection'),
-    Trophy('Frostbite Senior Team Manager Award - Male',                                  '',                             'Team Manager Selection'),
-    Trophy('Frostbite Senior Team Manager Award - Female',                                '',                             'Team Manager Selection')
+    Trophy('M_Mar_overall',         'Marathon Trophy - Best Performance Male',                                     'C&C trophy',                   'Auto', 'Marathon results only'                ),
+    Trophy('W_Mar_overall',         'Marathon Trophy - Best Performance Female',                                   'C&C trophy',                   'Auto', 'Marathon results only'                ),
+    Trophy('Vet_Mar_wava',          'Marathon Trophy - Best Performance Masters',                                  'The Howard Cup',               'Auto', 'Marathon results only'                ),
+    Trophy('M_HM_overall',          'Half Marathon - Best Performance Male',                                       'Huddleston Trophy',            'Auto', 'Half Marathon results only'           ),
+    Trophy('W_HM_overall',          'Half Marathon - Best Performance Female',                                     'C&C Trophy',                   'Auto', 'Half Marathon results only'           ),
+    Trophy('Vet_HM_wava',           'Half Marathon - Best Performance Masters',                                    'C&C Cup',                      'Auto', 'Half Marathon results only'           ),
+    Trophy('M_10K_overall',         '10k Road race - Best Performance Male',                                       'C&C Trophy',                   'Auto', '10k Road Races only'                  ),
+    Trophy('W_10K_overall',         '10k Road race - Best Performance Female',                                     'C&C Trophy',                   'Auto', '10k Road Races only'                  ),
+    Trophy('Vet_10K_wava',          '10k Road race - Best Performance Masters',                                    'C&C Trophy',                   'Auto', '10k Road Races only'                  ),
+    Trophy('M_5K_overall',          '5k Road race - Best Performance Male',                                        'The Peter Howard Trophy',      'Auto', '5k Road Races only'                   ),
+    Trophy('W_5K_overall',          '5k Road race - Best Performance female',                                      'The Vice-Presidents Cup',      'Auto', '5k Road Races only'                   ),
+    Trophy('Vet_5K_wava',           '5k Road race - Best Performance Veterans',                                    'The Wilding Challenge Trophy', 'Auto', '5k Road Races only'                   ),
+    Trophy('M_Sprint_ea_pb',        'Best Performance Sprints - Male',                                             'C&C Shield',                   'Auto', '60, 100, 200, 300 and 400 flat sprint'),
+    Trophy('W_Sprint_ea_pb',        'Best Performance Sprints - Female',                                           'C&C Shield',                   'Auto', '60, 100, 200, 300 and 400 flat sprint'),
+    Trophy('M_Middle_ea_pb',        'Best Performance Middle Distance - Male',                                     'C&C Shield',                   'Auto', '600, 800, 1500, 3000, 3000SC'         ),
+    Trophy('W_Middle_ea_pb',        'Best Performance Middle Distance - Female',                                   'C&C Shield',                   'Auto', '600, 800, 1500, 3000, 3000SC'         ),
+    Trophy('VertJ_ea_pb',           'Best Performance Vertical Jumps',                                             'RHA Trophy',                   'Auto', 'High Jump and Pole Vault'             ),
+    Trophy('HorizJ_ea_pb',          'Best Performance Long and Triple jump',                                       'Derek Hulyer Cup',             'Auto', 'Long Jump and T'                      ),
+    Trophy('MU15plus_Hurdle_ea_pb', 'Best Performance Hurdles - Male U15 - Seniors',                               'The George Hibberd Trophy',    'Auto', '60mH, 80mH, 100mH, 110mH'             ),
+    Trophy('WU15plus_Hurdle_ea_pb', 'Best Performance Hurdles - Female U15 - Seniors',                             'The George Hibberd Trophy',    'Auto', '60mH, 75mH, 80mH, 100mH'              ),
+    Trophy('MU13_Hurdle_ea_pb',     'Best Performance Hurdles - Under 13 Boys ',                                   'The East Cambs Trophy',        'Auto', '60mH, 75mH'                           ),
+    Trophy('WU13_Hurdle_ea_pb',     'Best Performance Hurdles - Under 13 Girls',                                   'The C&C Trophy',               'Auto', '60mH, 70mH'                           ),
+    Trophy('Sen_Throws_ea_pb',      'Best Performance - Senior Throws (U20/senior equipment)',                     'The Bramford Cup',             'Auto', 'Discus, Shot, Javelin, Hammer'        ),
+    Trophy('Jun_Throws_ea_pb',      'Best Performance - Junior Throws (U13/U15/U17 equipment)',                    'The George Smith Cup',         'Auto', 'Discus, Shot, Javelin, Hammer'        ),
+    Trophy('M_Multi_ea_pb',         'Best Performance Multi-events - Male',                                        'The Gillingham Cup',           'Auto', 'Pentathlon, Heptathlon, Decathlon'    ),
+    Trophy('W_Multi_ea_pb',         'Best Performance Multi-events - Female',                                      'The Bill Oliver Cup',          'Auto', 'Pentathlon, Heptathlon'               ),
+    Trophy('',                      'Best Performance Track and Field - Male',                                     'W Mitchell Hall Cup',          'Committee Selection'   ),
+    Trophy('',                      'Best Performance Track and Field - Female',                                   'The Simpson cup',              'Committee Selection'   ),
+    Trophy('',                      'Best Performance Track and Field - Veteran male',                             'The George Smith trophy',      'Committee Selection'   ),
+    Trophy('',                      'Best Performance Track and Field - Veteran Female',                           'T&F Shield',                   'Committee Selection'   ),
+    Trophy('',                      'Best Performance of the Season (all disciplines)',                            'H.G Ashman Cup',               'Committee Selection'   ),
+    Trophy('',                      'Best Masters Performance of the Season (all disciplines)',                    'The Veteran Shield',           'Committee Selection'   ),
+    Trophy('',                      'Best Performance of the season - Wheelchair/Frame Runner/Disability athlete', 'C&C trophy',                   'Committee Selection'   ),
+    Trophy('',                      'Contribution to the club',                                                    'C&C trophy',                   'Committee Selection'   ),
+    Trophy('Jun_Walk_overall',      'Race Walking - Junior',                                                       '',                             'Auto'                  ),
+    Trophy('Sen_Walk_overall',      'Race Walking - Senior',                                                       '',                             'Auto'                  ),
+    Trophy('',                      'Glyn Smith Award',                                                            '',                             'Committee Selection'   ),
+    Trophy('',                      'Keith Davidson Award',                                                        '',                             'Committee Selection'   ),
+    Trophy('',                      'EYAL Team Manager Award - Male',                                              '',                             'Team Manager Selection'),
+    Trophy('',                      'EYAL Team Manager Award - Female',                                            '',                             'Team Manager Selection'),
+    Trophy('',                      'EAL Team Manager Award - Male',                                               '',                             'Team Manager Selection'),
+    Trophy('',                      'EAL Team Manager Award - Female',                                             '',                             'Team Manager Selection'),
+    Trophy('',                      'SAL Team Manager Award - Male',                                               '',                             'Team Manager Selection'),
+    Trophy('',                      'SAL Team Manager Award - Female',                                             '',                             'Team Manager Selection'),
+    Trophy('',                      'EMAC Team Manager Award - Male',                                              '',                             'Team Manager Selection'),
+    Trophy('',                      'EMAC Team Manager Award - Female',                                            '',                             'Team Manager Selection'),
+    Trophy('',                      'Frostbite Junior Team Manager Award - Male',                                  '',                             'Team Manager Selection'),
+    Trophy('',                      'Frostbite Junior Team Manager Award - Female',                                '',                             'Team Manager Selection'),
+    Trophy('',                      'Frostbite Senior Team Manager Award - Male',                                  '',                             'Team Manager Selection'),
+    Trophy('',                      'Frostbite Senior Team Manager Award - Female',                                '',                             'Team Manager Selection')
 ]
 
 
@@ -1644,7 +1648,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
          cache_file='cache.pkl', rebuild_final_year=False, rebuild_prefinal_year=False,
          first_claim_only=False,
          types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False,
-         ea_pb_award_file=None):
+         ea_pb_award_file=None, do_agm=False):
 
     # Retrieve cache of performances obtained from web trawl previously
     try:
@@ -1695,6 +1699,10 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
 
     output_records(output_file, first_year, last_year, club_id, do_po10, do_runbritain, input_files, club_name)
 
+def y_n_option_true(arg_value):
+    """Decide if a Boolean option is set to yes/y/Y/etc"""
+    return arg_value.lower().startswith("y")
+
 
 if __name__ == '__main__':
     # Main entry point
@@ -1723,26 +1731,28 @@ if __name__ == '__main__':
     parser.add_argument('--multievent', dest='multievent',  choices=yes_no_choices, default='y')
     parser.add_argument('--wava', dest='wava',  choices=yes_no_choices, default='y')
     parser.add_argument('--ea-pb-award-file', dest='ea_pb_award_file', default=None)
+    parser.add_argument('--agm', dest='agm',  choices=yes_no_choices, default='n')
 
     args = parser.parse_args()
 
-    do_po10               = args.do_po10.lower().startswith('y')
-    do_runbritain         = args.do_runbritain.lower().startswith('y')
-    rebuild_final_year    = args.rebuild_final_year.lower().startswith('y')
-    rebuild_prefinal_year = args.rebuild_final_year.lower().startswith('y')
-    rebuild_wava          = args.rebuild_wava.lower().startswith('y')
-    first_claim_only      = args.first_claim_only.lower().startswith('y')
-    do_wava               = args.wava.lower().startswith('y')
+    do_po10               = y_n_option_true(args.do_po10)
+    do_runbritain         = y_n_option_true(args.do_runbritain)
+    rebuild_final_year    = y_n_option_true(args.rebuild_final_year)
+    rebuild_prefinal_year = y_n_option_true(args.rebuild_final_year)
+    rebuild_wava          = y_n_option_true(args.rebuild_wava)
+    first_claim_only      = y_n_option_true(args.first_claim_only)
+    do_wava               = y_n_option_true(args.wava)
+    do_agm                = y_n_option_true(args.agm)
     ea_pb_award_file      = args.ea_pb_award_file
     types = []
-    if args.track.lower().startswith('y'):      types.append('T')
-    if args.field.lower().startswith('y'):      types.append('F')
-    if args.road.lower().startswith('y'):       types.append('R')
-    if args.multievent.lower().startswith('y'): types.append('M')
+    if y_n_option_true(args.track):      types.append('T')
+    if y_n_option_true(args.field):      types.append('F')
+    if y_n_option_true(args.road):       types.append('R')
+    if y_n_option_true(args.multievent): types.append('M')
 
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
          input_files=args.excel_file, cache_file=args.cache_filename, rebuild_final_year=rebuild_final_year,
          rebuild_prefinal_year=rebuild_prefinal_year, first_claim_only=first_claim_only, types=types,
          do_wava=do_wava, rebuild_wava=rebuild_wava,
-         ea_pb_award_file=ea_pb_award_file)
+         ea_pb_award_file=ea_pb_award_file, do_agm=do_agm)
