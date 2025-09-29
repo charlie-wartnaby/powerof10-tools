@@ -73,6 +73,7 @@ max_records_age_group = 3 # Similarly per age group
 max_wavas_all = 20  # All-time WAVA list
 max_wavas_year = 5 # WAVA list for specific year
 wava_athlete_ids_done = {}
+max_trophy_entries = 3
 max_ea_pbs_all = max_wavas_all
 max_ea_pbs_year = max_wavas_year
 ea_pb_limit_perf_fraction = 0.25   # Improvement beyond level 9 we use for 'level 10'
@@ -524,7 +525,16 @@ def source_pref_score(source):
     return score
 
 
-def process_performance_cat_and_all(perf, types, collection_choice, year='ALL'):
+def process_perf_for_cats_and_ea_pb(perf, types, year, do_agm):
+    """Consider a record both for specific age/gender category and overall,
+    and also for EA PB Award records"""
+
+    process_performance_cat_and_all(perf, types, 'record', year, do_agm)
+    process_performance(perf, types, 'ea_pb', 'ALL', do_agm)
+    process_performance(perf, types, 'ea_pb', str(year), do_agm)
+
+
+def process_performance_cat_and_all(perf, types, collection_choice, year, do_agm):
     """Our manual entries from spreadsheets
     should be considered for overall records even if they are noted for an age group,
     if that event is one that seniors do.
@@ -533,17 +543,17 @@ def process_performance_cat_and_all(perf, types, collection_choice, year='ALL'):
     (W 300 from 2005). It does result in powerof10 replacing some runbritain
     equivalens though."""
 
-    process_performance(perf, types, collection_choice, year)
+    process_performance(perf, types, collection_choice, year, do_agm)
 
     saved_category = perf.category
     if saved_category != 'ALL' and event_relevant_to_category(perf.event, perf.gender, 'ALL'):
         # Also consider if this might be an outright record, not just in this age group
         perf.category = 'ALL' # Cheeky trick to avoid reconstructing for different category
-        process_performance(perf, types, collection_choice, year)
+        process_performance(perf, types, collection_choice, year, do_agm)
         perf.category = saved_category
 
 
-def process_performance(perf, types, collection_choice, year='ALL'):
+def process_performance(perf, types, collection_choice, year, do_agm):
     """Add performance to overall and category record tables if appropriate,
       while respecting the max size of those tables"""
     
@@ -601,6 +611,19 @@ def process_performance(perf, types, collection_choice, year='ALL'):
         max_records = max_ea_pbs_all if year == 'ALL' else max_ea_pbs_year
     else:
         raise ValueError(f"Unexpected collection_choice {collection_choice}")
+
+    consider_performance_for_record(perf, record_list, max_records, smaller_score_better, compare_field)
+
+    if do_agm:
+        for trophy in cnc_trophies:
+            if performance_fits_trophy(trophy, perf, compare_field):
+                consider_performance_for_record(perf, trophy.record_table, max_trophy_entries, smaller_better, compare_field)
+
+
+def consider_performance_for_record(perf, record_list, max_records, smaller_score_better, compare_field):
+    """Check if this performance belongs on list for a specific record and add if
+    so, while keeping list at no more than allowed length by deleting worst remaining
+    performance(s)"""
 
     add_record = False
     if len(record_list) < max_records:
@@ -680,6 +703,11 @@ def process_performance(perf, types, collection_choice, year='ALL'):
         del record_list[max_records :]
 
 
+def performance_fits_trophy(trophy, perf, compare_field):
+    """Consider if a performance fits with a club trophy"""
+    return False
+
+
 def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
     # The England Athletics PB Awards scheme gives an integer score to different
     # performance attainments, but we need a continuous (decimal) score for close
@@ -728,8 +756,8 @@ def calculate_ea_pb_score(ea_pb_obj, score, smaller_score_better):
     return ea_score
 
 
-def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava):
-    """Add a performance to WAVA tables"""
+def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava, do_agm):
+    """Consider a performance for WAVA record tables"""
 
     athlete_id_match = re.search(r'athleteid=([0-9]+)', reqd_perf.athlete_url)
     athlete_id = athlete_id_match.group(1)
@@ -805,8 +833,8 @@ def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava):
         else:
             # Found performance we were looking for this time
             year = get_perf_year(perf.date)
-            process_performance(perf, types, 'wava', 'ALL')
-            process_performance(perf, types, 'wava', str(year))
+            process_performance(perf, types, 'wava', 'ALL', do_agm)
+            process_performance(perf, types, 'wava', str(year), do_agm)
             performance_count['Po10-WAVA'] += 1
             break
 
@@ -921,7 +949,7 @@ def process_one_rankings_table(rows, gender, category, source, perf_list, types)
 
 
 def process_one_po10_year_gender(club_id, year, gender, category, performance_cache,
-                                  rebuild_cache, first_claim_only, types):
+                                  rebuild_cache, first_claim_only, types, do_agm):
     """Process gender/age category rankings from powerof10 for specified year
        for ALL events in one go (returned page has table per event, different
        from runbritain)"""
@@ -980,9 +1008,7 @@ def process_one_po10_year_gender(club_id, year, gender, category, performance_ca
         print(report_string_base + f'{len(perf_list)} performances from cache')
 
     for perf in perf_list:
-        process_performance_cat_and_all(perf, types, 'record')
-        process_performance(perf, types, 'ea_pb', year='ALL')
-        process_performance(perf, types, 'ea_pb', year=str(year))
+        process_perf_for_cats_and_ea_pb(perf, types, year, do_agm)
         performance_count['Po10'] += 1
 
 
@@ -997,7 +1023,8 @@ def make_cache_key(url, request_params):
 
 
 def process_one_runbritain_year_gender(club_id, year, gender, category, event, performance_cache,
-                                        rebuild_cache, first_claim_only, types, do_wava, rebuild_wava):
+                                        rebuild_cache, first_claim_only, types, do_wava, rebuild_wava,
+                                        do_agm):
     """Get rankings for a single event, age group, gender etc from runbritain; this is
     where such detailed rankings tables are fetched from when requested from powerof10."""
 
@@ -1075,14 +1102,12 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
         print(report_string_base + f'{len(perf_list)} performances from cache')
     
     for perf in perf_list:
-        process_performance_cat_and_all(perf, types, 'record')
-        process_performance(perf, types, 'ea_pb', year='ALL')
-        process_performance(perf, types, 'ea_pb', year=year)
+        process_perf_for_cats_and_ea_pb(perf, types, year, do_agm)
         performance_count['Runbritain'] += 1
         if do_wava and perf.event in wava_events:
             # Done in runbritain processing because po10 overall (all events)
             # rankings by year don't reliably include 5K
-            process_po10_wava(perf, performance_cache, types, rebuild_wava)
+            process_po10_wava(perf, performance_cache, types, rebuild_wava, do_agm)
 
 
 
@@ -1485,7 +1510,7 @@ def process_one_club_record_excel_worksheet(input_file, worksheet, types):
         source = 'Historical worksheet: ' + input_file + ':' + worksheet.title
         perf = construct_performance(event, gender, category, perf_str, name, name_url,
                             date, fixture, fixture_url, source)
-        process_performance_cat_and_all(perf, types, 'record')
+        process_performance_cat_and_all(perf, types, 'record', 'ALL', do_agm)
     
         performance_count['File(s)'] += 1
 
@@ -1672,7 +1697,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
                 for category in powerof10_categories:
                     process_one_po10_year_gender(club_id, year, gender, category,
                                                  performance_cache, rebuild_cache, first_claim_only,
-                                                 types)
+                                                 types, do_agm)
             if do_runbritain:
                 for (event, _, _, runbritain, type, categories) in known_events: # debug [('Mar', True, 3, True, 'R')]:
                     if not runbritain: continue
@@ -1681,7 +1706,8 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
                         if event_relevant_to_category(event, gender, category):
                             process_one_runbritain_year_gender(club_id, year, gender, category, event,
                                                             performance_cache, rebuild_cache,
-                                                            first_claim_only, types, do_wava, rebuild_wava)
+                                                            first_claim_only, types, do_wava, rebuild_wava,
+                                                            do_agm)
 
     # Input files last so manual 'invalidate' entries will remove known anomalies from Po10
     for input_file in input_files:
@@ -1698,6 +1724,7 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
     club_name = get_po10_club_name(club_id)
 
     output_records(output_file, first_year, last_year, club_id, do_po10, do_runbritain, input_files, club_name)
+
 
 def y_n_option_true(arg_value):
     """Decide if a Boolean option is set to yes/y/Y/etc"""
