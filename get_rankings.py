@@ -103,6 +103,8 @@ known_events = [
                 ('4M',         True,        2,        True,     'R',                        []     ),
                 ('5M',         True,        2,        True,     'R',                        []     ),
                 ('10K',        True,        2,        True,     'R',                        []     ),
+                ('20K',        True,        2,        True,     'R',                        []     ),
+                ('30K',        True,        2,        True,     'R',                        []     ),
                 ('10M',        True,        2,        True,     'R',                        []     ),
                 ('HM',         True,        2,        True,     'R',                        []     ),
                 ('Mar',        True,        3,        True,     'R',                        []     ),
