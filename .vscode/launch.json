@@ -8,14 +8,9 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args":["--cache", "foo.pkl",
-                    "--firstyear", "2010",
-                    "--lastyear", "2010",
-                    "--track", "n",
-                    "--field", "n",
-                    "--multievent", "n",
-                    "--wava", "y",
-                    "--rebuild-wava", "y"]
+            "args":["--cache", "cnc_cache.pkl",
+                    "--ea-pb-award-file", "EA_PB_Awards_tables.xlsx",
+                    "2022_CnC_records.xlsx", "2021_CnC_records.xlsx", "2009_CnC_records.xlsx", "CnC_known_historical.xlsx"]
         }
     ]
 }

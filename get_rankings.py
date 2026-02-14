@@ -842,8 +842,8 @@ def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava, do_agm)
             break
 
 
-# PowerOf10 dates always have form "1 Jan 1980" or "11 Jan 1989"
-regex_po10_date = re.compile(r'([0-9][0-9]?) ([A-Z][a-z][a-z]) ([0-9][0-9])')
+# PowerOf10 dates always have form "1 Jan 80" or "11 Jan 89"
+regex_po10_date = re.compile(r'([0-9][0-9]?) ([A-Z][a-z][a-z]) ([0-9][0-9])$')
 regex_4digits = re.compile(r'([0-9]{4})')
 
 def get_perf_year(perf_date_str):
