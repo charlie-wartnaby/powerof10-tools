@@ -7,8 +7,8 @@ import copy
 import datetime
 import openpyxl
 import os
+import math
 import pandas
-import pickle
 import re
 import requests
 import sys
@@ -628,6 +628,11 @@ def consider_performance_for_record(perf, record_list, max_records, smaller_scor
     so, while keeping list at no more than allowed length by deleting worst remaining
     performance(s)"""
 
+    # Need some tolerance now loading legacy cache from .csv file as round-trip
+    # can lose a little precision, giving small mismatch between historical
+    # worksheet and float value from cache which should be identical
+    epsilon = 1e-6
+
     add_record = False
     if len(record_list) < max_records:
         # We don't have enough records for this event yet so add
@@ -638,15 +643,15 @@ def consider_performance_for_record(perf, record_list, max_records, smaller_scor
         # record-holders; and a chance to line up data from different sources in
         # the output to show agreement where they match
         if smaller_score_better:
-            if getattr(perf, compare_field) <= prev_worst_score: add_record = True
+            if getattr(perf, compare_field) <= (prev_worst_score + epsilon): add_record = True
         else:
-            if getattr(perf, compare_field) >= prev_worst_score: add_record = True
+            if getattr(perf, compare_field) >= (prev_worst_score - epsilon): add_record = True
 
     if add_record:
         same_score_seen = False
         tie_same_name_managed = False
         for existing_perf_list in record_list:
-            if getattr(existing_perf_list[0], compare_field) == getattr(perf, compare_field):
+            if math.fabs(getattr(existing_perf_list[0], compare_field) - getattr(perf, compare_field)) < epsilon:
                 same_score_seen = True
                 # Same record with different source, or a tie with new person
                 # Prefer Po10 over Runbritain, and don't include both as share source data
@@ -785,48 +790,10 @@ def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava, do_agm)
 
     report_string_base = f'PowerOf10 WAVA list for {reqd_perf.athlete_name} ID {athlete_id} '
     if perf_list is None:
+        print(f"{report_string_base} not in legacy cache, skipping")
         perf_list = []
-        try:
-            page_response = requests.get(url, request_params)
-        except requests.exceptions.ConnectionError:
-            print(report_string_base + ' ConnectionError')
-            return
-
-        print(report_string_base + f'page return status {page_response.status_code}')
-
-        if page_response.status_code != 200:
-            print(f'HTTP error code fetching page: {page_response.status_code}')
-            return
-
-        input_text = page_response.text
-        tables = get_html_content(input_text, 'table')
-        second_level_tables = []
-        for table in tables:
-            nested_tables = get_html_content(table.inner_text, 'table')
-            second_level_tables.extend(nested_tables)
-        third_level_tables = []
-        for table in second_level_tables:
-            nested_tables = get_html_content(table.inner_text, 'table')
-            third_level_tables.extend(nested_tables)
-        fourth_level_tables = []
-        for table in third_level_tables:
-            nested_tables = get_html_content(table.inner_text, 'table')
-            fourth_level_tables.extend(nested_tables)
-        all_tables = tables
-        all_tables.extend(second_level_tables)
-        all_tables.extend(third_level_tables)
-        all_tables.extend(fourth_level_tables) # Think it is actually in here
-
-        for table in all_tables:
-            if 'class' not in table.attribs or table.attribs['class'] != 'alternatingrowspanel':
-                continue
-            rows = get_html_content(table.inner_text, 'tr')
-            if len(rows) < 2:
-                continue
-            # Looks like we've found the table of results or something similar
-            process_one_athlete_results_table(reqd_perf, rows, perf_list)
-
-        performance_cache[cache_key] = perf_list
+    else:
+        print(report_string_base + f'{len(perf_list)} performances from cache')
 
     for perf in perf_list:
         # Only match performance of interest this time, as athlete may have
@@ -1060,47 +1027,8 @@ def process_one_runbritain_year_gender(club_id, year, gender, category, event, p
     report_string_base = f'Runbritain club {club_id} year {year} gender {gender} category {category} event {event} '
 
     if perf_list is None:
+        print(f"{report_string_base} not in legacy cache, skipping")
         perf_list = []
-        try:
-            page_response = requests.get(url, request_params)
-        except requests.exceptions.ConnectionError:
-            print(report_string_base + ' ConnectionError')
-            return
-
-        print(report_string_base + f'page return status {page_response.status_code}')
-
-        if page_response.status_code != 200:
-            print(f'HTTP error code fetching page: {page_response.status_code}')
-            return
-
-        input_text = page_response.text
-        results_array_regex = re.compile(r'runners =\s*(\[.*?\]);', flags=re.DOTALL)
-        array_match = results_array_regex.search(input_text)
-
-        if array_match is None:
-            print('No data found')
-        else:
-            source = f'Runbritain {year}'
-            array_str = array_match.group(1)
-            array_str = array_str.replace('\n', ' ').replace('\r', '')
-            results_array = eval(array_str)
-            for result in results_array:
-                if not result[6] : continue # No name, could be second performance by same person
-                anchor = get_html_content(result[6], 'a')
-                name = anchor[0].inner_text
-                url = runbritain_root_url + anchor[0].attribs["href"]
-                perf = result[1] # Chip time
-                if not perf:
-                    perf = result[3] # Gun time
-                date = result[10]
-                venue_link = result[9]
-                anchor = get_html_content(venue_link, 'a')
-                fixture_name = anchor[0].inner_text
-                fixture_url = runbritain_root_url + anchor[0].attribs["href"]
-                perf = construct_performance(event, gender, category, perf, name, url, date, fixture_name, fixture_url, source)
-                perf_list.append(perf)
-
-        performance_cache[cache_key] = perf_list
     else:
         print(report_string_base + f'{len(perf_list)} performances from cache')
     
@@ -1671,21 +1599,53 @@ def read_ea_pb_award_score_tables(ea_pb_award_file):
     print(f'... processed {rows_completed} rows from EA PB Awards tables')
 
 
+def load_pre2026_performance_cache(pre2026_cache_file):
+    """"Attempt to load file with cached retrievals from powerof10/runbritain before
+    relaunch of their website at start of 2026"""
+
+    pre2026_cached_performances = {}
+    # Some datatypes will not be inferred correctly so assign manually
+    dtype_dict = {
+                  'original_special' : str,
+                  }
+    cache_dataframe = pandas.read_csv(pre2026_cache_file, dtype=dtype_dict)
+    replace_na_dict = {
+                    'invalid' : False,
+                    'original_special' : "",
+                    'ea_pb_score' : 0,
+                    'age' : 0,
+                    'wava' : 0
+    }
+    cache_dataframe.fillna(replace_na_dict, inplace=True)
+    for row in cache_dataframe.iterrows():
+        perf_part = row[1] # After useless index element first
+        perf_obj = Performance(perf_part.event, perf_part.score, perf_part.category,
+                               perf_part.gender, perf_part.original_special, perf_part.decimal_places,
+                               perf_part.athlete_name, perf_part.athlete_url, perf_part.date,
+                               perf_part.fixture_name, perf_part.fixture_url, perf_part.source,
+                               perf_part.wava, perf_part.age, perf_part.invalid, perf_part.ea_pb_score)
+        url_key = perf_part.url_key
+        if url_key not in pre2026_cached_performances:
+            pre2026_cached_performances[url_key] = []
+        pre2026_cached_performances[url_key].append(perf_obj)
+
+    return pre2026_cached_performances
+
+
 def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024, 
          do_po10=False, do_runbritain=True, input_files=[],
-         cache_file='cache.pkl', rebuild_final_year=False, rebuild_prefinal_year=False,
+         pre2026_cache_file=None, rebuild_final_year=False, rebuild_prefinal_year=False,
          first_claim_only=False,
          types=['T', 'F', 'R', 'M'], do_wava=True, rebuild_wava=False,
          ea_pb_award_file=None, do_agm=False):
 
-    # Retrieve cache of performances obtained from web trawl previously
-    try:
-        with open(cache_file, 'rb') as fd:
-            performance_cache = pickle.load(fd)
-            print(f'Cached web results retrieved from {cache_file}')
-    except IOError:
-        print(f"Cache file {cache_file} can't be opened, starting new cache")
+    if pre2026_cache_file:
+        # Retrieve cache of performances obtained from web trawl previously
+        performance_cache = load_pre2026_performance_cache(pre2026_cache_file)
+    else:
         performance_cache = {}
+
+    # TODO future: load new cache for 2026+ powerof10
 
     if ea_pb_award_file:
         read_ea_pb_award_score_tables(ea_pb_award_file)
@@ -1716,13 +1676,13 @@ def main(club_id=238, output_file='records.htm', first_year=2005, last_year=2024
     for input_file in input_files:
         process_one_club_record_input_file(input_file, types)
 
-    # Save updated cache for next time
-    try:
-        with open(cache_file, 'wb') as fd:
-            pickle.dump(performance_cache, fd)
-        print(f'Cached web results written to {cache_file}')
-    except IOError:
-        print(f"Cache file {cache_file} can't be written, any new web results this time not cached")
+    # # Save updated cache for next time
+    # try:
+    #     with open(pre2026_cache_file, 'wb') as fd:
+    #         pickle.dump(performance_cache, fd)
+    #     print(f'Cached web results written to {pre2026_cache_file}')
+    # except IOError:
+    #     print(f"Cache file {pre2026_cache_file} can't be written, any new web results this time not cached")
 
     club_name = get_po10_club_name(club_id)
 
@@ -1750,7 +1710,7 @@ if __name__ == '__main__':
     parser.add_argument('--lastyear', dest='last_year', type=int, default=this_year)
     parser.add_argument('--clubid', dest='club_id', type=int, default=cnc_po10_club_id)
     parser.add_argument('--output', dest='output_filename', default='records.htm')
-    parser.add_argument('--cache', dest='cache_filename', default='cache.pkl')
+    parser.add_argument('--pre2026-cache', dest='pre2026_cache_filename', default='cnc_pre_2026_po10_runbritain_perforances.zip')
     parser.add_argument('--rebuild-final-year', dest='rebuild_final_year', choices=yes_no_choices, default='n')
     parser.add_argument('--rebuild-prefinal-year', dest='rebuild_prefinal_year', choices=yes_no_choices, default='n')
     parser.add_argument('--rebuild-wava', dest='rebuild_wava',  choices=yes_no_choices, default='n')
@@ -1782,7 +1742,7 @@ if __name__ == '__main__':
 
     main(club_id=args.club_id, output_file=args.output_filename, first_year=args.first_year, 
          last_year=args.last_year, do_po10=do_po10, do_runbritain=do_runbritain, 
-         input_files=args.excel_file, cache_file=args.cache_filename, rebuild_final_year=rebuild_final_year,
+         input_files=args.excel_file, pre2026_cache_file=args.pre2026_cache_filename, rebuild_final_year=rebuild_final_year,
          rebuild_prefinal_year=rebuild_prefinal_year, first_claim_only=first_claim_only, types=types,
          do_wava=do_wava, rebuild_wava=rebuild_wava,
          ea_pb_award_file=ea_pb_award_file, do_agm=do_agm)
