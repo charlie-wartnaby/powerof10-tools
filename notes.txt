@@ -1,179 +1,97 @@
-https://thepowerof10.info/clubs/club.aspx?clubid=238&year=2023&firstclaimonly=y
-
-https://thepowerof10.info/rankings/rankinglists.aspx?clubid=238&agegroups=U20&sex=M&year=2023&firstclaimonly=y&limits=n
-
-https://thepowerof10.info/rankings/rankinglists.aspx?
-clubid=238          -- C&C=238
-&agegroups=U20      -- ALL/U20/U17/U15/U13. ALL seems to contain all junior results OK
-&sex=M              -- M/W
-&year=2023          -- 2005-2023
-&firstclaimonly=y   -- y or n
-&limits=n           -- with 'y', only shows faster performances?
-
-Actual results in section like this all on one line:
-
-E.g. for https://thepowerof10.info/rankings/rankinglists.aspx?clubid=238&agegroups=ALL&sex=M&year=2023&firstclaimonly=y&limits=y 
-
-</div>
-    <span id="cphBody_lblOutput"><table cellspacing="0" cellpadding="2" rules="none" border="0" style="width:100%;border-collapse:collapse;"><tr class="rankinglisttitle"><td colspan="10"><b>60 Men Overall 2023 Cambridge & Coleridge AC to 7.3 (Auto timed only to 7.30)</b></td><td colspan="4" align="right"><b><a class="rankinglisttitle" href="/athletes/headtohead.aspx?event=60&athleteids=532853|668086|955051">Head to Head Top 10</a></b></td></tr><tr class="rankinglistheadings"><td><b>Rank</b></td><td><b>Perf</b></td><td><b></b></td><td><b></b></td><td><b>PB</b></td><td><b></b></td><td><b>Name</b></td><td><b></b></td><td align="center"><b>Year</b></td><td><b>Coach</b></td><td><b>Club</b></td><td><b>Venue</b></td><td align="right"><b>Date</b></td><td><b></b></td></tr><tr class="rlr"><td>1</td><td>6.83</td><td>i</td><td style="white-space:nowrap" align="right"></td><td>6.83i</td><td><span class="rlpb">PB</span></td><td><a href="/athletes/profile.aspx?athleteid=532853" target="_blank">Adam Cross</a></td><td></td><td align="center">1</td><td><a href="/athletes/profile.aspx?athleteid=768865" target="_blank">Owen McNally</a></td><td>Cambridge & Coleridge</td><td><a href="/results/results.aspx?meetingid=506423&event=60&date=4-Feb-23" target="_blank">Loughborough</a></td><td style="white-space:nowrap" align="right">4 Feb 23</td><td><a href="/submit/notify.aspx?performanceid=77099835" title="notify us of amends" target="_blank"><img src="/images/pot/email.gif" border="0" /></a></td></tr><tr class="rlra"><td>2</td><td>6.94</td><td>i</td><td style="white-space:nowrap" align="right"></td><td>6.94i</td><td><span class="rlpb">PB</span></td><td><a href="/athletes/profile.aspx?athleteid=668086" target="_blank">Samuel Clarke</a></td><td></td><td align="center">1</td><td><a href="/athletes/profile.aspx?athleteid=716116" target="_blank">Robert Smith</a></td><td>Cambridge & Coleridge</td><td><a href="/results/results.aspx?meetingid=518121&event=60&date=11-Feb-23" target="_blank">Lee Valley</a></td><td style="white-space:nowrap" align="right">11 Feb 23</td><td><a href="/submit/notify.aspx?performanceid=77491768" ...
-    
-    a></td></tr><tr class="rlra"><td>18</td><td>2:59:24</td><td>c</td><td></td><td>2:59:24</td><td><span class="rlpb">PB</span></td><td><a href="/athletes/profile.aspx?athleteid=679791" target="_blank">Jack Rose</a></td><td></td><td></td><td>Cambridge & Coleridge</td><td><a href="/results/results.aspx?meetingid=531486&event=Mar&date=16-Apr-23" target="_blank">Manchester</a></td><td style="white-space:nowrap" align="right">16 Apr 23</td><td><a href="/submit/notify.aspx?performanceid=79154665" title="notify us of amends" target="_blank"><img src="/images/pot/email.gif" border="0" /></a></td></tr><tr><td>&nbsp;</td></tr></table></span>
-
-    </div>
-
-Reformatting that line for clarity here:
-
-    <span id="cphBody_lblOutput">
-      <table cellspacing="0" cellpadding="2" rules="none" border="0" style="width:100%;border-collapse:collapse;">
-        <tr class="rankinglisttitle">
-           <td colspan="10"><b>60 Men Overall 2023 Cambridge & Coleridge AC to 7.3 (Auto timed only to 7.30)</b></td>
-           <td colspan="4" align="right"><b><a class="rankinglisttitle" href="/athletes/headtohead.aspx?event=60&athleteids=532853|668086|955051">Head to Head Top 10</a></b></td>
-        </tr>
-        <tr class="rankinglistheadings">
-           <td><b>Rank</b></td>
-           <td><b>Perf</b></td>
-           <td><b></b></td>
-           <td><b></b></td><
-           td><b>PB</b></td>
-           <td><b></b></td>
-           <td><b>Name</b></td
-           <td><b></b></td>
-           <td align="center"><b>Year</b></td>
-           <td><b>Coach</b></td>
-           <td><b>Club</b></td>
-           <td><b>Venue</b></td>
-           <td align="right"><b>Date</b></td>
-           <td><b></b></td>
-        </tr>
-        <tr class="rlr">
-            <td>1</td>
-            <td>6.83</td>
-            <td>i</td>
-            <td style="white-space:nowrap" align="right"></td>
-            <td>6.83i</td>
-            <td><span class="rlpb">PB</span></td>
-            <td><a href="/athletes/profile.aspx?athleteid=532853" target="_blank">Adam Cross</a></td>
-            <td></td>
-            <td align="center">1</td>
-            <td><a href="/athletes/profile.aspx?athleteid=768865" target="_blank">Owen McNally</a></td>
-            <td>Cambridge & Coleridge</td>
-            <td><a href="/results/results.aspx?meetingid=506423&event=60&date=4-Feb-23" target="_blank">Loughborough</a></td>
-            <td style="white-space:nowrap" align="right">4 Feb 23</td>
-            <td><a href="/submit/notify.aspx?performanceid=77099835" title="notify us of amends" target="_blank"><img src="/images/pot/email.gif" border="0" /></a></td>
-        </tr>
-        <tr class="rlra">
-            <td>2</td>
-            <td>6.94</td>
-            <td>i</td>
-            <td style="white-space:nowrap" align="right"></td>
-            <td>6.94i</td>
-            <td><span class="rlpb">PB</span></td>
-            <td><a href="/athletes/profile.aspx?athleteid=668086" target="_blank">Samuel Clarke</a></td>
-            <td></td>
-            <td align="center">1</td>
-            <td><a href="/athletes/profile.aspx?athleteid=716116" target="_blank">Robert Smith</a></td>
-            <td>Cambridge & Coleridge</td>
-            <td><a href="/results/results.aspx?meetingid=518121&event=60&date=11-Feb-23" target="_blank">Lee Valley</a></td>
-            <td style="white-space:nowrap" align="right">11 Feb 23</td>
-            <td><a href="/submit/notify.aspx?performanceid=77491768" title="notify us of amends" target="_blank"><img src="/images/pot/email.gif" border="0" /></a></td>
-        </tr>
-        <tr class="rlr">
-            <td>3</td>
-            <td>7.16</td>
-            <td>i</td>
-            <td style="white-space:nowrap" align="right"></td>
-            <td>7.16i</td>
-            <td><span class="rlpb">PB</span></td>
-            <td><a href="/athletes/profile.aspx?athleteid=955051" target="_blank">Paul Lambrecht</a></td>
-            <td>U17</td>
-            <td align="center">-7</td>
-            <td></td>
-            <td>Cambridge & Coleridge</td>
-            <td><a href="/results/results.aspx?meetingid=506424&event=60&date=8-Jan-23" target="_blank">Lee Valley</a></td>
-            <td style="white-space:nowrap" align="right">8 Jan 23</td>
-            <td><a href="/submit/notify.aspx?performanceid=76448026" title="notify us of amends" target="_blank"><img src="/images/pot/email.gif" border="0" /></a></td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-        </tr>
-        <tr class="rankinglisttitle">
-            <td colspan="10"><b>100 Men Overall 2023 Cambridge & Coleridge AC to 11.5 (Auto timed only to 10.99)</b></td>
-            <td colspan="4" align="right"><b><a class="rankinglisttitle" href="/athletes/headtohead.aspx?event=100&athleteids=532853|964292|955051|1202859">Head to Head Top 10</a></b></td>
-        </tr>
-        <tr class="rankinglistheadings">
-            <td><b>Rank</b></td>
-            <td><b>Perf</b></td>
-            <td><b></b></td>
-            <td><b></b></td>
-            <td><b>PB</b></td>
-            <td><b></b></td>
-            <td><b>Name</b></td>
-            <td><b></b></td>
-            <td align="center"><b>Year</b></td>
-            <td><b>Coach</b></td>
-            <td><b>Club</b></td>
-            <td><b>Venue</b></td>
-            <td align="right"><b>Date</b></td>
-            <td><b></b></td>
-        </tr>
-        <tr class="rlr">
-          <td>1</td>
-          ...
-        </tr>
-        Or can get:
-        <tr><td colspan="14">No performances found</td></tr>
-        ...
-        <tr>
-          <td>&nbsp;</td>
-        </tr>
-      </table>
-    </span>
-
-RunBritain (extended) Rankings
-
-
-Get odd missing results selecting age cat like this:
-https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=HM&agegroup=V45&sex=M&year=2017&clubid=238
-Instead of age range like this:
-https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=HM&agegroup=ALL&sex=M&year=2017&agemin=45&agemax=49&clubid=238
-'All time' (alltime=y) doesn't seem to work with club selected (or at least only finds those in
-all time list in their own right) so have to go year by year
-But all time rankings have results pre-2003 e.g. in 
-https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=Mar&agegroup=ALL&sex=M&alltime=y
-(Can omit agegroup=ALL)
-Can also miss results if omit sex=M/W.
-https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=Mar&agegroup=ALL&sex=M&year=2005&clubid=238
-
-limit option like limits option on po10, get slower times (important for age groups) with limit=n:
-https://www.runbritainrankings.com/rankings/rankinglist.aspx?event=5000&agegroup=ALL&sex=M&year=2019&agemin=45&agemax=49&limit=n&clubid=238
-
-Get handy Javascript source like this (can just eval() in Python?), pagination then done from list:
-
-<script type="text/javascript">
-var rankinglisttitle = [['HM Men Overall 2017 Cambridge & Coleridge AC to 90:00']];
-
-var runners = [
-[
-0  '1',
-1 '75:57', 
-2 '',
-3  '76:02',
-4   '74:33',
-5    '',
-6     '<a href=\"/runners/profile.aspx?athleteid=69655\" target=\"_blank\">Charles Wartnaby</a>',
-7      'V45', 
-8      'Cambridge & Coleridge', 
-9      '<a href=\"/results/results.aspx?meetingid=189769&event=HM&date=15-Jan-17\" target=\"_blank\">York</a>',
-10       '15 Jan 17'],
-['2', '79:35', '', '80:09', '76:25', '', '<a href=\"/runners/profile.aspx?athleteid=49750\" target=\"_blank\">Paul Veitch</a>', 'V45', 'Cambridge & Coleridge', '<a href=\"/results/results.aspx?meetingid=194424&event=HM&date=5-Mar-17\" target=\"_blank\">Cambridge</a>', '5 Mar 17'],
-['3', '85:19', '', '85:24', '81:05', '', '<a href=\"/runners/profile.aspx?athleteid=79476\" target=\"_blank\">Neil White</a>', 'V45', 'Cambridge & Coleridge', '<a href=\"/results/results.aspx?meetingid=194424&event=HM&date=5-Mar-17\" target=\"_blank\">Cambridge</a>', '5 Mar 17'],
-['4', '89:13', '', '89:36', '89:13', '<span class=\"rlpb\">PB</span>', '<a href=\"/runners/profile.aspx?athleteid=270427\" target=\"_blank\">Stuart Matthews</a>', 'V45', 'Cambridge & Coleridge', '<a href=\"/results/results.aspx?meetingid=194424&event=HM&date=5-Mar-17\" target=\"_blank\">Cambridge</a>', '5 Mar 17']
-];
-</script>
-
-Paul Aste: I wish I was still a member of C&C but I think that expired in 2020 - either my spot on the road 10k should be erased or I've got some other times to give you from the US!
--- still shows as C&C on po10
 
 2025 award winners: https://cambridgeandcoleridge.org.uk/cc-awards-evening-2025
 
 New junior age groups: https://www.englandathletics.org/about-us/age-group-changes/for-athletes-and-parents
+
+-----
+New powerof10
+
+Can view network interactions in Chrome, Ctrl-Shift-J to open panel including Network tab.
+Shows recaptcha_en.js use so presumably intended to block automated scraping.
+
+Do same URLs work consistently?
+10Jul2026 at home my own page starts at https://www.powerof10.uk/Home/Athlete/7c5832cd-cb5b-4228-a29f-827147939425
+in Chrome, also opened in Edge.
+Mobile site today seems to lack athlete search anyway today, no menu button either, just national rankings.
+Menu button does appear after rankings appear. Then realise can get from homepage by scrolling top banner to
+see right edge. Do then get same URL with same GUID fo me at least searching at same time just done on PC.
+Clicking on my own track years get URLs like this being sent by Javascript:
+https://www.powerof10.uk/Home/GetAthletePerformances?refer=7c5832cd-cb5b-4228-a29f-827147939425&filt=Track&yr=2010&ord=Default&sid=7081&tkn=&_=1783663109928
+Abbreviating that to get rid of sid and tkn numbers gives JSON returned in new tab:
+https://www.powerof10.uk/Home/GetAthletePerformances?refer=7c5832cd-cb5b-4228-a29f-827147939425&filt=Track&yr=2010&ord=Default
+{"perfs":{"yr":2014,"ord":"Default","dictpgs":{"Track":{"pgs":[{"results":[{"id":"e1b04d49-3f7a-4c3e-bb3a-b97a85d5028b","perf":"17:14.4","perfchip":"","wnd":"","evnt":"5000","hasevntvar":false,"evntvar":null,"dte":"21 Jun","addinf":"","waspb":false,"pos":"1","pts":"","ag":"","age":"","sss":"","vsss":"","venn":"Cambridge","venns":"Cambridge","venid":"","mtn":"Sweatshop Southern Athletics League Division 3 North","mtns":"Sweatshop Southern Athletic...","mtid":"658dd94f-9d8f-4d39-9ec0-4e27438e796f"}]}],"pgcnt":1,"perfsCount":1,"oth":null,"hasoth":false,"yr":2014}}},"trackAgeGroups":"Veteran 40","trackClubs":"Cambridge \u0026 Coleridge AC","xcAgeGroups":"","xcClubs":"","sid":null,"status":"OK"}
+Skipping filt, yr or ord params gives error return content though, so all those mandatory.
+John Ferguson page from search including confirmed club dropdown:
+https://www.powerof10.uk/Home/Athlete/5073cf7a-fb58-4a2a-b7b7-2906099e7512
+Searching for Andrew Shields, first request on pressing search is immediate GET for his correct URL, so how does search work?
+https://www.powerof10.uk/Home/Athlete/48701b63-ff24-4515-b4e9-c3ae50b9b8c5
+Athlete search without specifying club:
+https://www.powerof10.uk/Home/RunAthleteSearch?fn=Jack&ln=Gray&clb=&sid=1030&tkn=&_=1783664205031
+which produces usable JSON output:
+{"perrs":null,"results":[
+    {"id":"2499c50c-e42e-4f4a-b131-e1f7ba8391a1","fn":"Jack","ln":"Gray","gen":"Men","hasclbid":true,"clbid":"c93c8806-6028-418a-8645-09df6e946c98","clbnm":"Basingstoke \u0026 Mid Hants AC","clbnmshrt":"Basingstoke \u0026 Mid Hants AC","hasfcoclbid":false,"fcoclbid":"","fcoclbnm":"","fcoclbnmshrt":"","hasscclbid":false,"scclbid":"","scclbnm":"","scclbnmshrt":"","tag":"Sen","rag":"Sen","xcag":"Sen"},
+    {"id":"1f976022-689a-4c90-ab9d-668faad45ba0","fn":"Jack","ln":"Gray","gen":"Men","hasclbid":true,"clbid":"bb5eb3a2-1c3f-4a89-8507-342131fe19d7","clbnm":"Cambridge \u0026 Coleridge AC","clbnmshrt":"Cambridge \u0026 Coleridge AC","hasfcoclbid":false,"fcoclbid":"","fcoclbnm":"","fcoclbnmshrt":"","hasscclbid":false,"scclbid":"","scclbnm":"","scclbnmshrt":"","tag":"Sen","rag":"Sen","xcag":"Sen"},
+    ...
+    {"id":"5b26d31d-111e-4a60-97cb-0b1cea873b34","fn":"Jack","ln":"Grayson","gen":"Men","hasclbid":false,"clbid":"","clbnm":"Unattached","clbnmshrt":"Unattached","hasfcoclbid":false,"fcoclbid":"","fcoclbnm":"","fcoclbnmshrt":"","hasscclbid":false,"scclbid":"","scclbnm":"","scclbnmshrt":"","tag":"V40","rag":"V40","xcag":"V40"}
+],"hasmore":false,"sid":null,"status":"OK"}
+'hasmore' worrying, no immediate way for me to load more...
+Trying 
+https://www.powerof10.uk/Home/GetAthletePerformances?refer=bb5eb3a2-1c3f-4a89-8507-342131fe19d7&filt=Track&yr=2023&ord=Default
+Got
+{"perfs":null,"trackAgeGroups":null,"trackClubs":null,"xcAgeGroups":null,"xcClubs":null,"sid":null,"status":"RECAPTCHA_REQUIRED"}
+... so looks like going to be dead end.
+
+C&C club page:
+https://www.powerof10.uk/Home/Club/bb5eb3a2-1c3f-4a89-8507-342131fe19d7
+Searching women's 10K 2025 rankings sends URL:
+https://www.powerof10.uk/Home/SearchRankingsRoadClub?ev=10K&yr=yr2025&sex=W&age=OVER&clb=bb5eb3a2-1c3f-4a89-8507-342131fe19d7&sid=6121&pg=1&tkn=&_=1783664779997
+Trying men's version in another tab works to start with:
+https://www.powerof10.uk/Home/SearchRankingsRoadClub?ev=10K&yr=yr2025&sex=M&age=OVER&clb=bb5eb3a2-1c3f-4a89-8507-342131fe19d7&sid=6121&pg=1
+{"title":"10K Overall Men 2025","qualstands":null,"datareverse":false,
+"results":[
+    {"rnk":1,"id":"92d97a08-f9c2-4529-aec1-fcd590bcb449","perfv":1726,"perfd":"28:46","perfchipd":"28:44","addinf":"","wnd":"","perfdt":"12 Jan","waspb":false,"gld":false,"ageinf":"SEN","sect":null,"athn":"Jack Gray","athns":"Jack Gray","athid":"1f976022-689a-4c90-ab9d-668faad45ba0","yrssen":"9","pb":"28:36","reqclbpop":false,"fcclbn":"Cambridge \u0026 Coleridge AC","fcclbns":"Cambridge \u0026 Coler...","fcclbid":"bb5eb3a2-1c3f-4a89-8507-342131fe19d7","sfcclbn":"","sfcclbns":"","sfcclbid":"","scclbn":"","fcoclbn":"","coan":"Mark Vile","coans":"Mark Vile","coaid":"d4e587dd-4ba5-48d1-a4c4-7373cb009e06","mtn":"10K Valencia Ibercaja","mtns":"10K Valencia Ibercaja","mtid":"476d04a4-0389-4ccf-8bad-24440c787455","mtlic":null,"venn":"Valencia, ESP","venns":"Valencia, ESP","venid":"","secid":"","secperf":"","secaddinf":"","secwnd":"","secmtn":"","secmtns":null,"secmtid":"","secmtlic":null,"secvenn":"","secvenns":null,"secvenid":"","secdt":null,"thiid":"","thiperf":"","thiaddinf":"","thiwnd":"","thimtn":"","thimtns":null,"thimtid":"","thimtlic":null,"thivenn":"","thivenns":null,"thivenid":"","thidt":null,"fouid":"","fouperf":"","fouaddinf":"","fouwnd":"","foumtn":"","foumtns":null,"foumtid":"","foumtlic":null,"fouvenn":"","fouvenns":null,"fouvenid":"","foudt":null},
+    {"rnk":2,"id":"703f31d6-8f93-4160-b3f9-95f0aab00488","perfv":1751,"perfd":"29:11","perfchipd":"29:07","addinf":"","wnd":"","perfdt":"14 Dec","waspb":true,"gld":false,"ageinf":"SEN","sect":null,"athn":"Oliver Newman","athns":"Oliver Newman","athid":"d8cda79e-b57c-4c54-8f88-d8b5c2cd825a","yrssen":"2","pb":"29:07","reqclbpop":false,"fcclbn":"Cambridge \u0026 Coleridge AC","fcclbns":"Cambridge \u0026 Coler...","fcclbid":"bb5eb3a2-1c3f-4a89-8507-342131fe19d7","sfcclbn":"","sfcclbns":"","sfcclbid":"","scclbn":"","fcoclbn":"","coan":"Mark Vile","coans":"Mark Vile","coaid":"d4e587dd-4ba5-48d1-a4c4-7373cb009e06","mtn":"Telford 10K","mtns":"Telford 10K","mtid":"070a9f6c-0687-468d-b194-cf36f3e15f0e","mtlic":null,"venn":"Telford","venns":"Telford","venid":"","secid":"","secperf":"","secaddinf":"","secwnd":"","secmtn":"","secmtns":null,"secmtid":"","secmtlic":null,"secvenn":"","secvenns":null,"secvenid":"","secdt":null,"thiid":"","thiperf":"","thiaddinf":"","thiwnd":"","thimtn":"","thimtns":null,"thimtid":"","thimtlic":null,"thivenn":"","thivenns":null,"thivenid":"","thidt":null,"fouid":"","fouperf":"","fouaddinf":"","fouwnd":"","foumtn":"","foumtns":null,"foumtid":"","foumtlic":null,"fouvenn":"","fouvenns":null,"fouvenid":"","foudt":null},
+    ...
+    ],"subcats":null,"currsubcat":null,"hasmore":false,"pg":1,"showYear":false,"sid":"6121","status":"OK"}
+(Long list but still has "hasmore"=false so maybe that's not a worry).
+After a few mins tried another year and again got
+{"title":null,"qualstands":null,"datareverse":false,"results":null,"subcats":null,"currsubcat":null,"hasmore":false,
+"pg":0,"showYear":false,"sid":"6121","status":"RECAPTCHA_REQUIRED"}
+Worked again after making some random search by hand in another tab.
+After 2 mins RECAPTCHA_REQUIRED. Actually got longer in another experiment.
+But using curl in WSL or Windows Command Prompt on same computer immediately gave RECAPTCHA_REQUIRED. Likewise if
+switch to Edge (different port/TCP connection?) or incognito window. So would have to do something within same browser?
+From Ctrl-Shift-J Network debug pane several cookies sent with request from browser:
+_ga=GA1.1.473207255.1772484418;
+ARRAffinity=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98;
+ARRAffinitySameSite=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98;
+MBSPO10COOKIE=zmpnsnopna0ksaca2jyk4tlb;
+_ga_RKK3PVW8K3=GS2.1.s1783663095$o22$g1$t1783664779$j54$l0$h0
+Failed incognito attempt has:
+MBSPO10COOKIE=mpimcmvltovaac4a053tlrmk;
+ARRAffinity=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98;
+ARRAffinitySameSite=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98
+After a while with new recaptcha (actually got on-screen test) cookies now:
+ga=GA1.1.473207255.1772484418
+ARRAffinity=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98
+ARRAffinitySameSite=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98
+MBSPO10COOKIE=zmpnsnopna0ksaca2jyk4tlb
+_ga_RKK3PVW8K3=GS2.1.s1783663095$o22$g1$t1783664779$j54$l0$h0
+So cookies do *not* change after timeout and revalidation. Using Edge instead:
+_ga=GA1.1.1948498750.1783663178
+MBSPO10COOKIE=5ak2rrs5o4ydzzv013suyxdj
+ARRAffinity=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98
+ARRAffinitySameSite=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98
+_ga_RKK3PVW8K3=GS2.1.s1783667828$o2$g1$t1783667845$j43$l0$h0
+so only _ga and MBSPO10COOKIE seem to change.
+Quickly copying cookies from a working request to command line (Windoes or WSL) curl does work, but how would I automate that?
+C:\Users\clogs>curl --cookie "_ga=GA1.1.473207255.1772484418" --cookie "ARRAffinity=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98" --cookie "ARRAffinitySameSite=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7edee0abe98" --cookie "MBSPO10COOKIE=zmpnsnopna0ksaca2jyk4tlb" --cookie "_ga_RKK3PVW8K3=GS2.1.s1783663095$o22$g1$t1783664779$j54$l0$h0" "https://www.powerof10.uk/Home/SearchRankingsRoadClub?ev=10K&yr=yr2025&sex=M&age=OVER&clb=bb5eb3a2-1c3f-4a89-8507-342131fe19d7&sid=6121&pg=1"
+...
+cew12@wingreta:~$ curl --cookie "_ga=GA1.1.473207255.1772484418" --cookie "ARRAffinity=3ef195cf5a67ac460b90f11efad550e2a
+7ea82cb73c3f5805474d7edee0abe98" --cookie "ARRAffinitySameSite=3ef195cf5a67ac460b90f11efad550e2a7ea82cb73c3f5805474d7ede
+e0abe98" --cookie "MBSPO10COOKIE=zmpnsnopna0ksaca2jyk4tlb" --cookie "_ga_RKK3PVW8K3=GS2.1.s1783663095$o22$g1$t1783664779
+$j54$l0$h0" "https://www.powerof10.uk/Home/SearchRankingsRoadClub?ev=10K&yr=yr2025&sex=M&age=OVER&clb=bb5eb3a2-1c3f-4a89
+-8507-342131fe19d7&sid=6121&pg=1"
+{"title":"10K Overall Men 2025","qualstands":null
+...
+Request with only MBSPO10COOKIE cookie still works. Hopefully that is stable for one browser between sessions?
