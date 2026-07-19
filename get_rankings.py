@@ -93,8 +93,6 @@ wava_events = ['Mar', 'HM', '10K', '5K']  # C&C trophy category but could do oth
 # some events should be in sec (1 number), some in min:sec (2 numbers), some h:m:s (3 numbers).
 # Some events only relevant to certain gender and/or age category; those found by checking po10
 # national rankings for different age groups to see e.g. which discus weight listed.
-# Still have pre-2026 powerof10 codes here but have started to add new junior age groups
-# against those events (maybe pointless as not searching using them any more).
 #                event, small-is-good, :-numbers, runbritain,  Track/Field/Road/Multievent, Categories
 known_events = [
                 ('1M',         True,        2,        True,     'R',                        []     ),
@@ -126,12 +124,10 @@ known_events = [
                 ('3000',       True,        2,        True,     'T',                        []     ),
                 ('5000',       True,        2,        True,     'T',                        []     ),
                 ('10000',      True,        2,        True,     'T',                        []     ),
-                ('1200SC',     True,        2,        True,     'T',                        ['M U14']     ),
-                ('1200SCW',    True,        2,        True,     'T',                        ['W U14']     ),
-                ('1500SC',     True,        2,        True,     'T',                        ['M U17', 'M U18']     ),
-                ('1500SCW',    True,        2,        True,     'T',                        ['W ALL', 'W U16', 'W U17', 'W U18', 'W U20', 'W U23', 'W 45', 'W V50', 'W V55', 'W V60']     ), # Included W ALL because official C&C records do, and so many age groups
-                ('2000SC',     True,        2,        True,     'T',                        ['M ALL', 'M U17', 'M U18', 'M U20', 'M U23', 'M V35', 'M V40', 'M V45']     ), # Included M ALL because official C&C records do, and so many age groups
-                ('2000SCW',    True,        2,        True,     'T',                        ['W ALL', 'W U16', 'W U18', 'W U20', 'W U23', 'W V50', 'W V55']     ),  # Included W ALL because official C&C records do, and so many age groups
+                ('1500SC',     True,        2,        True,     'T',                        ['M U17']     ),
+                ('1500SCW',    True,        2,        True,     'T',                        ['W ALL', 'W U17', 'W U20', 'W U23', 'W 45', 'W V50', 'W V55', 'W V60']     ), # Included W ALL because official C&C records do, and so many age groups
+                ('2000SC',     True,        2,        True,     'T',                        ['M ALL', 'M U17', 'M U20', 'M U23', 'M V35', 'M V40', 'M V45']     ), # Included M ALL because official C&C records do, and so many age groups
+                ('2000SCW',    True,        2,        True,     'T',                        ['W ALL', 'W U20', 'W U23', 'W V50', 'W V55']     ),  # Included W ALL because official C&C records do, and so many age groups
                 ('3000SC',     True,        2,        True,     'T',                        ['M ALL']     ),
                 ('3000SCW',    True,        2,        True,     'T',                        ['W ALL']     ),
                 ('MileW',      True,        2,        True,     'T',                        []     ), # Walks not shown as runbritain dropdowns but are supported
@@ -143,26 +139,23 @@ known_events = [
                 ('5MW',        True,        2,        True,     'R',                        []     ),
                 ('10000W',     True,        2,        True,     'T',                        []     ),
                 ('10KW',       True,        2,        True,     'R',                        []     ),
-                ('60H',        True,        1,        True,     'T',                        []     ), # Indoors presumably
-                ('70HU13W',    True,        1,        True,     'T',                        ['W U13', 'W U14']     ),
+                ('70HU13W',    True,        1,        True,     'T',                        ['W U13']     ),
                 ('75HU13M',    True,        1,        True,     'T',                        ['M U13']     ),
                 ('75HU15W',    True,        1,        True,     'T',                        ['W U15']     ),
-                ('80HU15M',    True,        1,        True,     'T',                        ['M U14', 'M U15', 'M U16']     ),
-                ('80HU17W',    True,        1,        True,     'T',                        ['W U16', 'W U17']     ),
+                ('80HU15M',    True,        1,        True,     'T',                        ['M U15']     ),
+                ('80HU17W',    True,        1,        True,     'T',                        ['W U17']     ),
                 ('80HW40',     True,        1,        True,     'T',                        ['W V40', 'W V45']     ), # checked runbritain for hurdles age groups
                 ('80HW50',     True,        1,        True,     'T',                        ['W V50', 'W V55']     ),
                 ('80HW60',     True,        1,        True,     'T',                        ['W V60', 'W V65']     ),
                 ('80HW70',     True,        1,        True,     'T',                        ['W V70', 'W V75']     ),
                 ('100HW',      True,        1,        True,     'T',                        ['W ALL']     ), # Hurdles not shown on runbritain but do work
                 ('100HM50',    True,        1,        True,     'T',                        ['M V50', 'M V55']     ),
-                ('100HU17M',   True,        1,        True,     'T',                        ['M U16', 'M U17']     ),
+                ('100HU17M',   True,        1,        True,     'T',                        ['M U17']     ),
                 ('110HU20M',   True,        1,        True,     'T',                        ['M U20']     ),
                 ('110H',       True,        1,        True,     'T',                        ['M ALL']     ),
                 ('110HM35',    True,        1,        True,     'T',                        ['M V35', 'M V40', 'M V45']     ),
                 ('300HW',      True,        1,        True,     'T',                        ['W U17', 'W V50', 'W V55']     ),
                 ('300HW60',    True,        1,        True,     'T',                        ['W V60', 'W V65']     ),
-                # Have not attempted to go through new 2026 age groups from here onwards
-                # as this data only used for defunct web requests anyway
                 ('400H',       True,        1,        True,     'T',                        ['M ALL']     ),
                 ('400HW',      True,        1,        True,     'T',                        ['W ALL']     ),
                 ('400HU17M',   True,        1,        True,     'T',                        ['M U17']     ),
@@ -312,20 +305,22 @@ for (event, smaller_better, numbers, runbritain, type, categories) in known_even
 # for posterity when producing report output.
 # Pre-2026:  U13, U15, U17, U20
 # From 2026: U12, U14, U16, U18
+# Have kept old category lists for now which work with pre-2026 cached po10 and runbritain
+# web results, but need new list allowing for new categories to iterate over when reporting
+# records, to accommodate manually-added spreadsheet entries with those:
+report_categories = ['ALL', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'U20', 'U23', 
+                     'V35', 'V40', 'V45', 'V50', 'V55', 'V60', 'V65', 'V70', 'V75', 'V80', 'V85', 'V90']
+
 # PowerOf10 age categories (usable on club page)
-powerof10_categories = ['ALL', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18' 'U20']
+powerof10_categories = ['ALL', 'U13', 'U15', 'U17', 'U20']
 
 # Runbritain age categories
 runbritain_categories = [ # name       min  max years old
                           ('ALL',        0,    0),
                           # ('Disability', 0,    0),     # Runbritain category but always zero results
-                          ('U12',        1,   11),
                           ('U13',        1,   12),
-                          ('U14',        12,  13),
                           ('U15',        13,  14),
-                          ('U16',        14,  15),
                           ('U17',        15,  16),
-                          ('U18',        16,  17),
                           ('U20',        17,  19),
                           ('U23',        20,  22),
                           # Skipping senior as have all-age records
@@ -1105,7 +1100,7 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     for year in range(last_year, first_year - 1, -1):
         year_keys.append(str(year))
 
-    for (category, _, _) in runbritain_categories:
+    for category in report_categories:
         if category not in record: continue
         main_contents_part.append('<tr>\n')
         for gender in ['W', 'M']:
