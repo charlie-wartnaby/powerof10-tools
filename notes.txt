@@ -95,3 +95,5 @@ $j54$l0$h0" "https://www.powerof10.uk/Home/SearchRankingsRoadClub?ev=10K&yr=yr20
 {"title":"10K Overall Men 2025","qualstands":null
 ...
 Request with only MBSPO10COOKIE cookie still works. Hopefully that is stable for one browser between sessions?
+
+Emailed for permission to scrape, told API in the works.
