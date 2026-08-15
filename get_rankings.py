@@ -156,6 +156,7 @@ known_events = [
                 ('110HM35',    True,        1,        True,     'T',                        ['M V35', 'M V40', 'M V45']     ),
                 ('300HW',      True,        1,        True,     'T',                        ['W U17', 'W V50', 'W V55']     ),
                 ('300HW60',    True,        1,        True,     'T',                        ['W V60', 'W V65']     ),
+                ('300HM60',    True,        1,        True,     'T',                        ['M V60', 'M V65']     ),
                 ('400H',       True,        1,        True,     'T',                        ['M ALL']     ),
                 ('400HW',      True,        1,        True,     'T',                        ['W ALL']     ),
                 ('400HU17M',   True,        1,        True,     'T',                        ['M U17']     ),
