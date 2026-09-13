@@ -1104,18 +1104,26 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
     for category in report_categories:
         if category not in record: continue
         main_contents_part.append('<tr>\n')
-        for gender in ['W', 'M']:
+        for gender in ['W', 'M', 'X']:
             section_bulk_part = []
             section_contents_part = []
-            anchor = f'category_{gender}_{category}'
+            category_anchor = f'category_{gender}_{category}'
+            if gender == 'X' and category == 'ALL':
+                x_all_anchor = category_anchor
             subtitle = f'Category: {gender} {category}'
-            main_contents_part.append(f'<td><center><b><a href="#{anchor}">{subtitle}</a></b></center></td>\n')
-            section_contents_part.append(f'<h2><a name="{anchor}" />{subtitle}</h2>\n\n')
-            section_contents_part.append('<p>Jump to: \n')
+            if gender != 'X':
+                # Mixed events v limited (only 4x400 initially) so treated as special case
+                main_contents_part.append(f'<td><center><b><a href="#{category_anchor}">{subtitle}</a></b></center></td>\n')
+            some_category_result = False
             for (event, _, _, _, _, _) in known_events:
                 if event not in record[category]: continue
                 record_list = record[category][event].get(gender)
                 if not record_list: continue
+                if not some_category_result:
+                    # First result in this category, so populate contents which would otherwise be omitted
+                    section_contents_part.append(f'<h2><a name="{category_anchor}" />{subtitle}</h2>\n\n')
+                    section_contents_part.append('<p>Jump to: \n')
+                    some_category_result = True
                 anchor = f'{event}_{gender}_{category}'.lower()
                 subtitle = f'{event} {gender} {category}'
                 section_contents_part.append(f'<em><a href="#{anchor}">...{subtitle}</a></em>\n')
@@ -1123,10 +1131,13 @@ def output_records(output_file, first_year, last_year, club_id, do_po10, do_runb
                 output_record_table(section_bulk_part, record_list, 'record')
                 add_best_record_if_new_this_year(new_records_this_year, record_list, last_year, 'RECORD')
                 add_best_record_if_new_this_year(new_records_last_year, record_list, last_complete_year, 'RECORD')
-            section_contents_part.append('</p>\n\n')
+            if gender != 'X':
+                section_contents_part.append('</p>\n\n')
             complete_bulk_part.extend(section_contents_part)
             complete_bulk_part.extend(section_bulk_part)
         main_contents_part.append('</tr>\n')
+
+    main_contents_part.append(f'<tr>\n<td colspan="2"><center><b><a href="#{x_all_anchor}">Category: X (Mixed Events)</a></b></center</td>\n</tr>\n')
 
     for bucket in ea_pb.keys():
         section_bulk_part = []
@@ -1415,8 +1426,8 @@ def process_one_club_record_excel_worksheet(input_file, worksheet, types):
             print(f'WARNING: event missing at row {excel_row_number}')
             continue
         gender = gender.upper().strip()
-        if gender not in ['M', 'W']:
-            print(f'WARNING: gender not W or M at row {excel_row_number}')
+        if gender not in ['M', 'W', 'X']:
+            print(f'WARNING: gender not W, M or X at row {excel_row_number}')
             continue
         source = 'Historical worksheet: ' + input_file + ':' + worksheet.title
         perf = construct_performance(event, gender, category, perf_str, name, name_url,

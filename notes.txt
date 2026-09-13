@@ -96,4 +96,7 @@ $j54$l0$h0" "https://www.powerof10.uk/Home/SearchRankingsRoadClub?ev=10K&yr=yr20
 ...
 Request with only MBSPO10COOKIE cookie still works. Hopefully that is stable for one browser between sessions?
 
+For mixed events "sex=X" e.g. 2025 4x400 rankings:
+https://www.powerof10.uk/Home/SearchRankingsTrackExtended?ev=4x400&yr=yr2025&sex=X&age=OVER&area=natUK&ino=&cls=&wind=&res=&sid=3845&pg=1&tkn=&_=1789286665881
+
 Emailed for permission to scrape, told API in the works.
