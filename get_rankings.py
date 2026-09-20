@@ -131,6 +131,7 @@ known_events = [
                 ('3000SC',     True,        2,        True,     'T',                        ['M ALL']     ),
                 ('3000SCW',    True,        2,        True,     'T',                        ['W ALL']     ),
                 ('MileW',      True,        2,        True,     'T',                        []     ), # Walks not shown as runbritain dropdowns but are supported
+                ('1000W',      True,        2,        True,     'T',                        []     ),
                 ('1500W',      True,        2,        True,     'T',                        []     ),
                 ('2000W',      True,        2,        True,     'T',                        []     ),
                 ('3000W',      True,        2,        True,     'T',                        []     ),
