@@ -3,6 +3,7 @@
 
 # See/use requirements.txt for additional module dependencies
 import argparse
+import calendar
 import copy
 import datetime
 import openpyxl
@@ -86,6 +87,10 @@ performance_count = {'Po10'       : 0,
                      'Runbritain' : 0,
                      'Po10-WAVA'  : 0,
                      'File(s)'    : 0}
+
+# For AGM WAVA calculations
+birth_date_limits = {}
+bound_birth_dates = False
 
 wava_events = ['Mar', 'HM', '10K', '5K']  # C&C trophy category but could do other events
 
@@ -807,6 +812,7 @@ def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava, do_agm)
         perf_list = []
     else:
         print(report_string_base + f'{len(perf_list)} performances from cache')
+        if bound_birth_dates: bound_birth_date(reqd_perf.athlete_name, perf_list)
 
     for perf in perf_list:
         # Only match performance of interest this time, as athlete may have
@@ -822,19 +828,64 @@ def process_po10_wava(reqd_perf, performance_cache, types, rebuild_wava, do_agm)
             break
 
 
+def bound_birth_date(athlete_name, perf_list):
+    if not perf_list:
+        return
+    for perf in perf_list:
+        if perf.age is None or perf.age <= 0:
+            continue
+        perf_datetime = get_po10_full_perf_date(perf.date)
+        if perf_datetime.month == 2 and perf_datetime.day == 29:
+            # Not attempting leap years for now
+            perf_datetime = datetime.datetime(perf_datetime.year, 3, 1)
+        # Youngest athlete can be is if their birthday was on the date of this performance
+        youngest_dob = datetime.datetime(perf_datetime.year - int(perf.age), perf_datetime.month, perf_datetime.day)
+        # Oldest athlete can be is if they are having next birthday the day after this performance
+        day_after_datetime = perf_datetime + datetime.timedelta(days=1)
+        if day_after_datetime.month == 2 and day_after_datetime.day == 29:
+            # Not attempting leap years for now
+            day_after_datetime = datetime.datetime(day_after_datetime.year, 3, 1)
+        next_age = int(perf.age) + 1
+        oldest_dob = datetime.datetime(day_after_datetime.year - next_age, day_after_datetime.month, day_after_datetime.day)
+        if athlete_name not in birth_date_limits:
+            birth_date_limits[athlete_name] = [youngest_dob, oldest_dob]
+        else:
+            if youngest_dob < birth_date_limits[athlete_name][0]:
+                birth_date_limits[athlete_name][0] = youngest_dob
+            if oldest_dob > birth_date_limits[athlete_name][1]:
+                birth_date_limits[athlete_name][1] = oldest_dob
+
+
 # PowerOf10 dates always have form "1 Jan 80" or "11 Jan 89"
 regex_po10_date = re.compile(r'([0-9][0-9]?) ([A-Z][a-z][a-z]) ([0-9][0-9])$')
+
 regex_4digits = re.compile(r'([0-9]{4})')
+
+def get_po10_full_perf_date(perf_date_str):
+    match_obj = regex_po10_date.match(perf_date_str)
+    if match_obj:
+        month_abbrevs = list(calendar.month_abbr)
+        day_in_month = int(match_obj.group(1))
+        abbrev_month_name = match_obj.group(2)
+        # This could fail but does not with the cached data we have:
+        one_based_month_idx = month_abbrevs.index(abbrev_month_name)
+        year_2digit = match_obj.group(3) # e.g. 24 for 2024
+        year = 2000 + int(year_2digit)
+        datetime_obj = datetime.datetime(year, one_based_month_idx, day_in_month)
+        return datetime_obj
+    else:
+        return None
+
 
 def get_perf_year(perf_date_str):
     # Return useful numeric year from whatever string we have
     # Can't make this Performance method now because of cached objects on disk
 
     # Mostly Po10/RunBritain
-    match_obj = regex_po10_date.match(perf_date_str)
-    if match_obj:
-        year_2digit = match_obj.group(3) # e.g. 24 for 2024
-        return 2000 + int(year_2digit)
+    perf_datetime = get_po10_full_perf_date(perf_date_str)
+    if perf_datetime is not None:
+        return perf_datetime.year
+    
     # Manual records should at least have 4-digit number date
     match_obj = regex_4digits.search(perf_date_str)
     if match_obj:
